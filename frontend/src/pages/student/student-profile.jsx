@@ -5,17 +5,20 @@ import StudentFormModal from '../../components/student/student-form-modal';
 
 function StudentProfile() {
     const ppColor = '#5e5e5e';
-    const badgeColors = {pendente: "warning", matriculado: "success"};
+    const badgeColors = {ativa: "success", trancada: "secondary", cancelada: "danger"};
 
     const { id } = useParams();
     let [studentData, setStudentData] = useState(null);
+    let [studentStatus, setStudentStatus] = useState({message: "SEM MATRÍCULA", color: "warning"});
+    let [activeTab, setActiveTab] = useState('personal');
 
     // busca dados completos do aluno para exibir e editar no mesmo fluxo
     useEffect(() => {
         async function carregarDados() {
             try {
                 const response = await api.get(`/api/manage-students/${id}`);
-                setStudentData({...response.data, status: response.data.enrollmentCount ? "MATRICULADO" : "PENDENTE"})
+                setStudentData(response.data);
+                (response.data.enrollments && response.data.enrollments.length) ? setStudentStatus({message: "MATRICULADO", color: "success"}) : setStudentStatus({message: "SEM MATRÍCULA", color: "warning"});
             } catch(e) {
                 console.error(e);
             }
@@ -44,62 +47,96 @@ function StudentProfile() {
                             </div>
                             <div>
                                 <h3 className="mb-1">{studentData.fullName}</h3>
-                                <p className="text-muted m-0">Situação: <span className={"badge text-bg-"+badgeColors[`${studentData.status.toLowerCase()}`]}>{studentData.status}</span></p>
+                                <p className="text-muted m-0">Situação: <span className={"badge text-bg-"+studentStatus.color}>{studentStatus.message}</span></p>
                                 <p className="text-muted m-0">Cadastrado em: {studentData.enrollmentDate}</p>
                             </div>
                         </div>
                     </div>
 
-                    <hr className="mb-4" />
-
-                    <div className="row g-3">
-                        <button className="btn btn-outline-primary col" type="button" data-bs-toggle="modal" data-bs-target="#student-form-modal">
-                            <i className="bi bi-pencil-fill me-2"></i>Editar
+                    <div className="profile-tabs mb-4 overflow-hidden">
+                        <button
+                            className={`profile-tab ${activeTab === 'personal' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('personal')}
+                        >
+                            <i className="bi bi-person-fill me-2"></i>Dados Pessoais
                         </button>
-                        <div className="col-12">
-                            <label className="text-muted small text-uppercase">cpf</label>
-                            <p className="fs-6 fw-bold mb-0 text-break">{studentData.cpf}</p>
+                        {studentData.enrollments && studentData.enrollments.length > 0 && (
+                            <button
+                                className={`profile-tab ${activeTab === 'enrollments' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('enrollments')}
+                            >
+                                <i className="bi bi-bookmark-fill me-2"></i>Matrículas
+                                <span className="tab-badge">{studentData.enrollments.length}</span>
+                            </button>
+                        )}
+                    </div>
+
+                    {activeTab === 'personal' && (
+                        <div className="row g-3">
+                            <button className="btn btn-outline-primary col" type="button" data-bs-toggle="modal" data-bs-target="#student-form-modal">
+                                <i className="bi bi-pencil-fill me-2"></i>Editar
+                            </button>
+                            <div className="col-12">
+                                <label className="text-muted small text-uppercase">cpf</label>
+                                <p className="fs-6 fw-bold mb-0 text-break">{studentData.cpf}</p>
+                            </div>
+                            <div className="col-12">
+                                <label className="text-muted small text-uppercase">data de nascimento</label>
+                                <p className="fs-6 fw-bold mb-0 text-break">{studentData.birthDate}</p>
+                            </div>
+                            <div className="col-12">
+                                <label className="text-muted small text-uppercase">e-mail</label>
+                                <p className="fs-6 fw-bold mb-0 text-break">{studentData.email}</p>
+                            </div>
+                            <div className="col-12">
+                                <label className="text-muted small text-uppercase">telefone</label>
+                                <p className="fs-6 fw-bold mb-0 text-break">{studentData.phone}</p>
+                            </div>
                         </div>
-                        <div className="col-12">
-                            <label className="text-muted small text-uppercase">data de nascimento</label>
-                            <p className="fs-6 fw-bold mb-0 text-break">{studentData.birthDate}</p>
-                        </div>
-                        <div className="col-12">
-                            <label className="text-muted small text-uppercase">e-mail</label>
-                            <p className="fs-6 fw-bold mb-0 text-break">{studentData.email}</p>
-                        </div>
-                        <div className="col-12">
-                            <label className="text-muted small text-uppercase">telefone</label>
-                            <p className="fs-6 fw-bold mb-0 text-break">{studentData.phone}</p>
-                        </div>
-                        {studentData.enrollments && studentData.enrollments.length && (
-                            <>
-                                <hr />
-                                <table className='table table-striped m-0'>
+                    )}
+
+                    {activeTab === 'enrollments' && studentData.enrollments && studentData.enrollments.length > 0 && (
+                        <div className='enrollment-section'>
+                            <div className='enrollment-section__header'>
+                                <button className='btn btn-outline-primary col' type='button'>
+                                    <i className='bi bi-plus-lg me-2'></i>Nova Matrícula
+                                </button>
+                            </div>
+                            <div className='table-responsive'>
+                                <table className='enrollment-table'>
                                     <thead>
-                                        <tr className='text-center'>
-                                            <th>CURSO</th>
-                                            <th>MATRÍCULA</th>
-                                            <th>TURMA</th>
-                                            <th>STATUS</th>
-                                            <th><i className='bi bi-gear'></i></th>
+                                        <tr>
+                                            <th className='text-start'>Curso</th>
+                                            <th>Matrícula</th>
+                                            <th>Turma</th>
+                                            <th>Status</th>
+                                            <th></th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {studentData.enrollments.map(e => (
-                                            <tr className='text-center font-monospace'>
-                                                <td>{e.courseName}</td>
-                                                <td>{e.name}</td>
-                                                <td>{e.classGroupName}</td>
-                                                <td>{e.status}</td>
-                                                <td><i className='bi bi-three-dots'></i></td>
+                                            <tr key={e.name} className='enrollment-row'>
+                                                <td className='enrollment-cell enrollment-cell--course'>{e.courseName}</td>
+                                                <td className='enrollment-cell font-monospace'>{e.name}</td>
+                                                <td className='enrollment-cell font-monospace'>{e.classGroupName}</td>
+                                                <td className='enrollment-cell enrollment-cell--status'>
+                                                    {console.log(e.status.toLowerCase())}
+                                                    <span className={"fw-bold text-"+badgeColors[`${e.status.toLowerCase()}`]}>
+                                                        {e.status}
+                                                    </span>
+                                                </td>
+                                                <td className='enrollment-cell enrollment-cell--action'>
+                                                    <button className='enrollment-action-btn' type='button' title='Ações'>
+                                                        <i className='bi bi-three-dots-vertical'></i>
+                                                    </button>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
-                            </>
-                        )}
-                    </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
