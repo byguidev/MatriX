@@ -190,6 +190,8 @@
 /* Tabela de matrículas. */
 .enrollment-table {
   width: 100%;
+  border: 1px solid rgba(0, 0, 0, 0.103);
+  border-radius: 5px;
   border-collapse: separate;
   border-spacing: 0;
   margin-bottom: 0;
@@ -201,7 +203,7 @@
 
 .enrollment-table thead th {
   background-color: #f1f3f5;
-  border-bottom: 2px solid #dee2e6;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.103);
   padding: 0.875rem 1rem;
   font-size: 0.8125rem;
   font-weight: 700;
@@ -220,6 +222,10 @@
   text-align: center;
 }
 
+.enrollment-table tbody tr:nth-child(odd) {
+  background-color: rgba(245, 245, 245, 0.85);;
+}
+
 /* Linhas e células da tabela. */
 .enrollment-row {
   border-bottom: 1px solid #e9ecef;
@@ -227,7 +233,7 @@
 }
 
 .enrollment-row:hover {
-  background-color: rgba(13, 110, 253, 0.03);
+  background-color: rgba(13, 110, 253, 0.03) !important;
 }
 
 .enrollment-row:last-child {
@@ -244,7 +250,7 @@
 
 .enrollment-cell--course {
   font-weight: 600;
-  color: #0d6efd;
+  color: #094eb4;
   text-align: start;
 }
 

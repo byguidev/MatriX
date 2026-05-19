@@ -51,15 +51,17 @@ export default function EnrollmentFormModal() {
         handleSubmit, 
         setValue, 
         formState: { errors, dirtyFields } } 
-        = useForm({resolver: zodResolver(enrollmentSchema)});
+        = useForm({resolver: zodResolver(enrollmentSchema), defaultValues: {
+            classGroupId: '',
+        }});
 
     const hasOpenClasses = classes && classes.filter(classGroup => (watch('courseId') == classGroup.courseId) && classGroup.status == "ABERTA").length > 0;
 
     // atualiza turma selecionada para manter curso e turma consistentes
     useEffect(() => {
         if (courses && classes) {
-            const validClasses = classes.filter(classGroup => classGroup.courseId == watch('courseId'));
-            validClasses.length ? setValue('classGroupId', validClasses[0].id) : setValue('classGroupId', null);
+            const validClasses = classes.filter(classGroup => classGroup.courseId == watch('courseId') && classGroup.availableSeats > 0);
+            validClasses.length ? setValue('classGroupId', validClasses[0].id) : setValue('classGroupId', "");
         }
     }, [watch('courseId')]);
 
@@ -118,9 +120,9 @@ export default function EnrollmentFormModal() {
                                     {
                                         classes 
                                         &&
-                                        classes.filter(classGroup => classGroup.courseId == Number(watch('courseId')) && classGroup.status == 'ABERTA').length 
+                                        classes.filter(classGroup => classGroup.courseId == watch('courseId') && classGroup.status == 'ABERTA' && classGroup.availableSeats > 0).length 
                                         ?
-                                        classes.filter(classGroup => classGroup.courseId == Number(watch('courseId')) && classGroup.status == 'ABERTA').map((classGroup, i) => (
+                                        classes.filter(classGroup => classGroup.courseId == watch('courseId') && classGroup.status == 'ABERTA' && classGroup.availableSeats > 0).map((classGroup, i) => (
                                             <option key={i} value={classGroup.id}>{classGroup.name}</option>
                                         ))                   
                                         :
