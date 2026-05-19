@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import StudentFormModal from '../../components/student/student-form-modal';
 import EnrollmentFormModal from '../../components/student/enrollment-form-modal';
+import DeleteModal from '../../components/.common/delete-modal';
 
 function StudentProfile() {
     const ppColor = '#5e5e5e';
@@ -125,10 +126,19 @@ function StudentProfile() {
                                                         {e.status}
                                                     </span>
                                                 </td>
-                                                <td className='enrollment-cell enrollment-cell--action'>
-                                                    <button className='enrollment-action-btn' type='button' title='Ações'>
+                                                <td className='enrollment-cell enrollment-cell--action dropdown'>
+                                                    <DeleteModal/>
+                                                    <button className='enrollment-action-btn' type='button' title='Ações' data-bs-toggle="dropdown">
                                                         <i className='bi bi-three-dots-vertical'></i>
                                                     </button>
+                                                    <ul className="dropdown-menu">
+                                                        <li className='dropdown-item btn'>
+                                                            <p className='m-0'>Trancar</p>
+                                                        </li>
+                                                        <li className='dropdown-item btn' data-bs-toggle="modal" data-bs-target="#delete-modal">
+                                                            <p className='text-danger m-0'>Cancelar</p>
+                                                        </li>
+                                                    </ul>
                                                 </td>
                                             </tr>
                                         ))}
