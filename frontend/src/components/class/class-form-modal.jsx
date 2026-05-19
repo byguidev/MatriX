@@ -19,7 +19,7 @@ function ClassFormModal({ data, title }) {
             .min(1, 'A turma deve ter pelo menos um aluno.')
             .max(1000, 'Limite de alunos excedido.'),
         status: 
-            z.enum(["PLANEJADA", "ABERTA", "ANDAMENTO", "FINALIZADA"], { message: "Valor inválido" }),
+            z.enum(["PLANEJADA", "ABERTA", "CONCLUIDA"], { message: "Valor inválido" }),
     }), [courses]);
 
     const { 
@@ -120,8 +120,9 @@ function ClassFormModal({ data, title }) {
                                 <select className='form-select' {...register('status')}>
                                     <option value="PLANEJADA">Planejada</option>
                                     <option value="ABERTA">Aberta</option>
-                                    <option value="ANDAMENTO">Em andamento</option>
-                                    <option value="FINALIZADA">Finalizada</option>
+                                    {data && (
+                                        <option value="CONCLUIDA">Concluída</option>
+                                    )}
                                 </select>
                                 {errors.status && (<span className='text-danger'>{errors.status.message}</span>)}
                             </div>

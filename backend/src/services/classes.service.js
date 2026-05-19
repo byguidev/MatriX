@@ -134,21 +134,27 @@ async function updateClass(body, id) {
             throw new AppError("No modified fields", 400);
         }
 
-        await prisma.$transaction(async (tx) => {
+        return prisma.$transaction(async (tx) => {
             const classGroup = await tx.classGroup.findUnique({where:{id: Number(id)}});
             if (!classGroup) throw new AppError('Class group not found', 404);
-            const effectiveMaxSeats = data.maxSeats ?? classGroup.maxSeats;
+
+            const effectiveMaxSeats = (data.maxSeats ?? classGroup.maxSeats) - classGroup.studentCount;
+
 
             await tx.classGroup.update({
                 where: { id: Number(id) },
                 data: {
                     ...data,
-                    availableSeats: effectiveMaxSeats - classGroup.studentCount,
+                    availableSeats: effectiveMaxSeats,
+                    status: effectiveMaxSeats > 0 ? ("status" in data ? data.status : classGroup.status) : "COMPLETA",
                 }
             })
 
             if (data.courseId) {
                 // ao trocar o curso, regenera identificacao da turma para novo contexto
+                const hasEnrollments = await tx.enrollment.findFirst({ where: { classGroupId: Number(id) } });
+                if (hasEnrollments) throw new AppError("Cannot change course with existing enrollments", 409);
+
                 const newClassData = await createClassName(body.courseId);
                 await tx.classGroup.update({
                     where: {id: Number(id)},

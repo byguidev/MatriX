@@ -2,6 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import StudentFormModal from '../../components/student/student-form-modal';
+import EnrollmentFormModal from '../../components/student/enrollment-form-modal';
 
 function StudentProfile() {
     const ppColor = '#5e5e5e';
@@ -31,6 +32,7 @@ function StudentProfile() {
         
         <div className="d-flex flex-column h-100 w-100">
             <StudentFormModal data={studentData} title={'Editar dados'} />
+            <EnrollmentFormModal studentId={id} />
             <div className="d-flex flex-column align-items-start p-4 gap-3">
                 <Link to="/manage-students" className='app-header__eyebrow'>
                     <i className="bi bi-house-fill"></i>
@@ -60,15 +62,13 @@ function StudentProfile() {
                         >
                             <i className="bi bi-person-fill me-2"></i>Dados Pessoais
                         </button>
-                        {studentData.enrollments && studentData.enrollments.length > 0 && (
-                            <button
-                                className={`profile-tab ${activeTab === 'enrollments' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('enrollments')}
-                            >
-                                <i className="bi bi-bookmark-fill me-2"></i>Matrículas
-                                <span className="tab-badge">{studentData.enrollments.length}</span>
-                            </button>
-                        )}
+                        <button
+                            className={`profile-tab ${activeTab === 'enrollments' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('enrollments')}
+                        >
+                            <i className="bi bi-bookmark-fill me-2"></i>Matrículas
+                            <span className="tab-badge">{studentData.enrollments.length}</span>
+                        </button>
                     </div>
 
                     {activeTab === 'personal' && (
@@ -95,10 +95,10 @@ function StudentProfile() {
                         </div>
                     )}
 
-                    {activeTab === 'enrollments' && studentData.enrollments && studentData.enrollments.length > 0 && (
+                    {activeTab === 'enrollments' && (
                         <div className='enrollment-section'>
                             <div className='enrollment-section__header'>
-                                <button className='btn btn-outline-primary col' type='button'>
+                                <button className='btn btn-outline-primary col' type='button' data-bs-toggle="modal" data-bs-target="#enrollment-form-modal">
                                     <i className='bi bi-plus-lg me-2'></i>Nova Matrícula
                                 </button>
                             </div>

@@ -1,9 +1,13 @@
 const studentsService = require('../services/students.service');
 
 // cria novo aluno a partir dos dados enviados no formulario
-async function createStudent(req, res, next) {
-  console.log(req.body);
+async function createStudent(req, res) {
   await studentsService.createStudent(req.validatedData.body);
+  res.sendStatus(201);
+}
+
+async function createEnrollment(req, res) {
+  await studentsService.createEnrollment(req.body.studentId, req.body.courseId, req.body.classGroupId);
   res.sendStatus(201);
 }
 
@@ -34,6 +38,7 @@ async function deleteStudent(req, res) {
 module.exports = {
   listStudents,
   createStudent,
+  createEnrollment,
   getStudentProfile,
   deleteStudent,
   updateStudent
