@@ -193,7 +193,6 @@ async function deleteClass(id) {
                     where: { id: student.id },
                     data: {
                         enrollmentCount: newCount,
-                        enrollmentStatus: newCount <= 0 ? "PENDENTE" : student.enrollmentStatus
                     }
                 });
             }

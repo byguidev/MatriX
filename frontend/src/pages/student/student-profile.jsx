@@ -4,7 +4,7 @@ import api from '../../services/api';
 import StudentFormModal from '../../components/student/student-form-modal';
 
 function StudentProfile() {
-    const ppColor = '#006eff';
+    const ppColor = '#5e5e5e';
     const badgeColors = {pendente: "warning", matriculado: "success"};
 
     const { id } = useParams();
@@ -14,8 +14,8 @@ function StudentProfile() {
     useEffect(() => {
         async function carregarDados() {
             try {
-                const req = await api.get(`/api/manage-students/${id}`);
-                setStudentData({...req.data, status: req.data.enrollmentCount ? "MATRICULADO" : "PENDENTE"})
+                const response = await api.get(`/api/manage-students/${id}`);
+                setStudentData({...response.data, status: response.data.enrollmentCount ? "MATRICULADO" : "PENDENTE"})
             } catch(e) {
                 console.error(e);
             }
@@ -72,6 +72,33 @@ function StudentProfile() {
                             <label className="text-muted small text-uppercase">telefone</label>
                             <p className="fs-6 fw-bold mb-0 text-break">{studentData.phone}</p>
                         </div>
+                        {studentData.enrollments && studentData.enrollments.length && (
+                            <>
+                                <hr />
+                                <table className='table table-striped m-0'>
+                                    <thead>
+                                        <tr className='text-center'>
+                                            <th>CURSO</th>
+                                            <th>MATRÍCULA</th>
+                                            <th>TURMA</th>
+                                            <th>STATUS</th>
+                                            <th><i className='bi bi-gear'></i></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {studentData.enrollments.map(e => (
+                                            <tr className='text-center font-monospace'>
+                                                <td>{e.courseName}</td>
+                                                <td>{e.name}</td>
+                                                <td>{e.classGroupName}</td>
+                                                <td>{e.status}</td>
+                                                <td><i className='bi bi-three-dots'></i></td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

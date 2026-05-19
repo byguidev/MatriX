@@ -18,20 +18,33 @@ async function listStudents() {
 
 // retorna perfil individual com mascaras aplicadas para a interface
 async function getStudentProfile(id) {
-  const row = await prisma.student.findUnique({
-    where: {
-      id: Number(id)
-    }
-  });
+  const student = await prisma.student.findUnique({ where: { id: Number(id) } });
 
-  if (!row) throw new AppError("Student not found", 404)
+  const enrollments = await prisma.enrollment.findMany({ where: { studentId: Number(id) } })
 
-  row.phone = formatter.formatPhone(row.phone);
-  row.cpf = formatter.formatCpf(row.cpf);
-  row.birthDate = formatter.formatDate(row.birthDate);
-  row.enrollmentDate = formatter.formatDate(row.enrollmentDate);
 
-  return row;
+  if (!student) throw new AppError("Student not found", 404);
+  if (enrollments.length) student.enrollments = enrollments;
+
+  for (let i = 0; i < enrollments.length; i++) {
+    const course = await prisma.course.findUnique({ 
+      where: { id: enrollments[i].courseId },
+      select: { name: true }
+    });
+    const classGroup = await prisma.classGroup.findUnique({ 
+      where: { id: enrollments[i].classGroupId },
+      select: { name: true }
+    });
+    student.enrollments[i].courseName = course.name;
+    student.enrollments[i].classGroupName = classGroup.name;
+  }
+
+  student.phone = formatter.formatPhone(student.phone);
+  student.cpf = formatter.formatCpf(student.cpf);
+  student.birthDate = formatter.formatDate(student.birthDate);
+  student.enrollmentDate = formatter.formatDate(student.enrollmentDate);
+
+  return student;
 }
 
 // cria matricula do aluno e sincroniza contadores de aluno e turma
