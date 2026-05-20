@@ -68,7 +68,7 @@ export default function EnrollmentFormModal() {
     const onSubmit = async (formData) => {
         const payload = {...formData, studentId: id};
         try {
-            await api.post(`/api/manage-students/${id}`, payload);
+            await api.post(`/api/manage-enrollments/${id}`, payload);
             window.location.reload();
         } catch(err) {
             const message = err.response?.data?.message || 'Erro ao conectar com o servidor';

@@ -4,6 +4,7 @@ const studentsRouter = require('./routes/students.routes');
 const coursesRouter = require('./routes/courses.routes');
 const classesRouter = require('./routes/classes.routes');
 const errorHandler = require('./middlewares/error.middleware');
+const enrollmentsRouter = require('./routes/enrollments.routes');
 require('dotenv').config();
 
 const app = express();
@@ -16,10 +17,11 @@ app.use(express.json());
 app.use('/api/manage-students', studentsRouter);
 app.use('/api/manage-courses', coursesRouter);
 app.use('/api/manage-classes', classesRouter);
+app.use('/api/manage-enrollments', enrollmentsRouter)
 
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 
 // sobe o servidor na porta configurada no ambiente
 app.listen(PORT);

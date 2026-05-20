@@ -2,7 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import StudentFormModal from '../../components/student/student-form-modal';
-import EnrollmentFormModal from '../../components/student/enrollment-form-modal';
+import EnrollmentFormModal from '../../components/enrollment/enrollment-form-modal';
 import DeleteModal from '../../components/.common/delete-modal';
 
 function StudentProfile() {
@@ -19,8 +19,9 @@ function StudentProfile() {
         async function carregarDados() {
             try {
                 const response = await api.get(`/api/manage-students/${id}`);
-                setStudentData(response.data);
-                (response.data.enrollments && response.data.enrollments.length) ? setStudentStatus({message: "MATRICULADO", color: "success"}) : setStudentStatus({message: "SEM MATRÍCULA", color: "warning"});
+                const enrollments = response.data.enrollments ?? [];
+                setStudentData({ ...response.data, enrollments });
+                setStudentStatus(enrollments.length ? {message: "MATRICULADO", color: "success"} : {message: "SEM MATRÍCULA", color: "warning"});
             } catch(e) {
                 console.error(e);
             }
@@ -95,57 +96,64 @@ function StudentProfile() {
                             </div>
                         </div>
                     )}
-
                     {activeTab === 'enrollments' && (
-                        <div className='enrollment-section'>
-                            <div className='enrollment-section__header'>
-                                <button className='btn btn-outline-primary col' type='button' data-bs-toggle="modal" data-bs-target="#enrollment-form-modal">
-                                    <i className='bi bi-plus-lg me-2'></i>Nova Matrícula
-                                </button>
-                            </div>
-                            <div className='table-responsive'>
-                                <table className='enrollment-table'>
-                                    <thead>
-                                        <tr>
-                                            <th className='text-start'>Curso</th>
-                                            <th>Matrícula</th>
-                                            <th>Turma</th>
-                                            <th>Status</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {studentData.enrollments.map(e => (
-                                            <tr key={e.name} className='enrollment-row'>
-                                                <td className='enrollment-cell enrollment-cell--course'>{e.courseName}</td>
-                                                <td className='enrollment-cell font-monospace'>{e.name}</td>
-                                                <td className='enrollment-cell font-monospace'>{e.classGroupName}</td>
-                                                <td className='enrollment-cell enrollment-cell--status'>
-                                                    {console.log(e.status.toLowerCase())}
-                                                    <span className={"fw-bold text-"+badgeColors[`${e.status.toLowerCase()}`]}>
-                                                        {e.status}
-                                                    </span>
-                                                </td>
-                                                <td className='enrollment-cell enrollment-cell--action dropdown'>
-                                                    <DeleteModal/>
-                                                    <button className='enrollment-action-btn' type='button' title='Ações' data-bs-toggle="dropdown">
-                                                        <i className='bi bi-three-dots-vertical'></i>
-                                                    </button>
-                                                    <ul className="dropdown-menu">
-                                                        <li className='dropdown-item btn'>
-                                                            <p className='m-0'>Trancar</p>
-                                                        </li>
-                                                        <li className='dropdown-item btn' data-bs-toggle="modal" data-bs-target="#delete-modal">
-                                                            <p className='text-danger m-0'>Cancelar</p>
-                                                        </li>
-                                                    </ul>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                        <div className='enrollment-section__header'>
+                            <button className='btn btn-outline-primary col' type='button' data-bs-toggle="modal" data-bs-target="#enrollment-form-modal">
+                                <i className='bi bi-plus-lg me-2'></i>Nova Matrícula
+                            </button>
+                        </div>      
+                    )}
+                    {activeTab === 'enrollments' && (
+                        <>
+                            {studentData.enrollments?.length > 0 ? (
+                                <div className='enrollment-section'>
+                                    <div className='table-responsive'>
+                                        <table className='enrollment-table'>
+                                            <thead>
+                                                <tr>
+                                                    <th className='text-start'>Curso</th>
+                                                    <th>Matrícula</th>
+                                                    <th>Turma</th>
+                                                    <th>Status</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {studentData.enrollments.map(e => (
+                                                    <tr key={e.name} className='enrollment-row'>
+                                                        <td className='enrollment-cell enrollment-cell--course'>{e.courseName}</td>
+                                                        <td className='enrollment-cell font-monospace'>{e.name}</td>
+                                                        <td className='enrollment-cell font-monospace'>{e.classGroupName}</td>
+                                                        <td className='enrollment-cell enrollment-cell--status'>
+                                                            {console.log(e.status.toLowerCase())}
+                                                            <span className={"fw-bold text-"+badgeColors[`${e.status.toLowerCase()}`]}>
+                                                                {e.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className='enrollment-cell enrollment-cell--action position absolute' data-bs-display="static">
+                                                            <DeleteModal/>
+                                                            <button className='enrollment-action-btn' type='button' title='Ações' data-bs-toggle="dropdown">
+                                                                <i className='bi bi-three-dots-vertical'></i>
+                                                            </button>
+                                                            <ul className="dropdown-menu">
+                                                                <li className='dropdown-item btn'>
+                                                                    <p className='m-0'>Trancar</p>
+                                                                </li>
+                                                                <li className='dropdown-item btn' data-bs-toggle="modal" data-bs-target="#delete-modal">
+                                                                    <p className='text-danger m-0'>Cancelar</p>
+                                                                </li>
+                                                            </ul>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            ) : (
+                                <h3 className="text-center my-auto">Sem matrículas</h3>
+                            )}
+                        </>
                     )}
                 </div>
             </div>

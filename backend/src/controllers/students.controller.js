@@ -6,11 +6,6 @@ async function createStudent(req, res) {
   res.sendStatus(201);
 }
 
-async function createEnrollment(req, res) {
-  await studentsService.createEnrollment(req.body.studentId, req.body.courseId, req.body.classGroupId);
-  res.sendStatus(201);
-}
-
 // bloqueia update vazio para evitar chamada sem efeito no banco
 async function updateStudent(req, res) {
   await studentsService.updateStudent(req.validatedData.body, req.params.id);
@@ -38,7 +33,6 @@ async function deleteStudent(req, res) {
 module.exports = {
   listStudents,
   createStudent,
-  createEnrollment,
   getStudentProfile,
   deleteStudent,
   updateStudent
