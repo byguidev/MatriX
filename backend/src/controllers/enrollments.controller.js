@@ -5,6 +5,12 @@ async function createEnrollment(req, res) {
   res.sendStatus(201);
 }
 
+async function changeEnrollmentStatus(req, res) {
+  await enrollmentsService.changeEnrollmentStatus(req.params.id, req.validatedData.body.status);
+  res.sendStatus(200);
+}
+
 module.exports = {
     createEnrollment,
+    changeEnrollmentStatus,
 }

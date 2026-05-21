@@ -57,6 +57,62 @@ async function createEnrollment(studentId, courseId, classGroupId, tx = null) {
   return run(prisma);
 }
 
+async function changeEnrollmentStatus(enrollmentId, status) {
+  try {
+    const enrollment = await prisma.enrollment.findUnique({
+      where: { id: Number(enrollmentId) },
+      select: { status: true, classGroupId: true }
+    });
+
+    if (!enrollment) throw new AppError("Enrollment not found", 404);
+
+    if (enrollment.status === "CANCELADA" && status !== "CANCELADA") {
+      throw new AppError("Canceled enrollment cannot change status", 409);
+    }
+
+    if (enrollment.status === status) return;
+
+    return prisma.$transaction(async (tx) => {
+      if (status !== "ATIVA") {
+        await tx.classGroup.update({
+          where: {id: Number(enrollment.classGroupId)},
+          data: {
+            studentCount: { decrement: 1 },
+            availableSeats: { increment: 1 },
+          }
+        })
+      } else {
+        await tx.classGroup.update({
+          where: {id: Number(enrollment.classGroupId)},
+          data: {
+            studentCount: { increment: 1 },
+            availableSeats: { decrement: 1 },
+          }
+        })
+      }
+
+      const classGroup = await tx.classGroup.findUnique({
+        where: { id: Number(enrollment.classGroupId) },
+        select: { availableSeats: true },
+      });
+
+      await tx.classGroup.update({
+        where: { id: Number(enrollment.classGroupId) },
+        data: { status: classGroup.availableSeats <= 0 ? "COMPLETA" : "ABERTA" },
+      })
+      
+      await tx.enrollment.update({
+        where: { id: Number(enrollmentId) },
+        data: { status }
+      });
+    })
+  } catch (err) {
+    if (err instanceof AppError) throw err;
+    handleDbError(err);
+  }
+}
+
 module.exports = {
     createEnrollment,
+    changeEnrollmentStatus,
 }

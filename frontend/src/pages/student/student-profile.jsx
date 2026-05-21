@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { z } from 'zod';
 import api from '../../services/api';
 import StudentFormModal from '../../components/student/student-form-modal';
 import EnrollmentFormModal from '../../components/enrollment/enrollment-form-modal';
@@ -12,7 +13,14 @@ function StudentProfile() {
     const { id } = useParams();
     let [studentData, setStudentData] = useState(null);
     let [studentStatus, setStudentStatus] = useState({message: "SEM MATRÍCULA", color: "warning"});
+    let [cancelRoute, setCancelRoute] = useState(null);
     let [activeTab, setActiveTab] = useState('personal');
+    let [showCanceled, setShowCanceled] = useState(false);
+
+    const enrollmentStatusSchema = z.object({
+        status: z.enum(["ATIVA", "TRANCADA", "CANCELADA"], { message: "Valor inválido" })
+    });
+    const cancelPayload = enrollmentStatusSchema.parse({ status: "CANCELADA" });
 
     // busca dados completos do aluno para exibir e editar no mesmo fluxo
     useEffect(() => {
@@ -28,6 +36,19 @@ function StudentProfile() {
         }
         carregarDados();
     }, [id])
+
+    const changeEnrollmentStatus = async (enrollmentId, nextStatus) => {
+        try {
+            const payload = enrollmentStatusSchema.parse({ status: nextStatus });
+            await api.patch(`/api/manage-enrollments/${enrollmentId}`, payload);
+            window.location.reload();
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const activeEnrollments = studentData?.enrollments?.filter(e => e.status !== "CANCELADA") ?? [];
+    const canceledEnrollments = studentData?.enrollments?.filter(e => e.status === "CANCELADA") ?? [];
 
     // renderiza spinner ate o retorno da api
     return studentData ? (
@@ -97,15 +118,20 @@ function StudentProfile() {
                         </div>
                     )}
                     {activeTab === 'enrollments' && (
-                        <div className='enrollment-section__header'>
-                            <button className='btn btn-outline-primary col' type='button' data-bs-toggle="modal" data-bs-target="#enrollment-form-modal">
+                        <div className='enrollment-section__header row gap-2 mx-0'>
+                            <button className='btn btn-outline-primary col-12' type='button' data-bs-toggle="modal" data-bs-target="#enrollment-form-modal">
                                 <i className='bi bi-plus-lg me-2'></i>Nova Matrícula
                             </button>
+                            {canceledEnrollments.length > 0 && (
+                                <button className='btn btn-outline-secondary col-12' type='button' onClick={() => setShowCanceled((current) => !current)}>
+                                    {showCanceled ? 'Ocultar canceladas' : `Mostrar canceladas (${canceledEnrollments.length})`}
+                                </button>
+                            )}
                         </div>      
                     )}
                     {activeTab === 'enrollments' && (
                         <>
-                            {studentData.enrollments?.length > 0 ? (
+                            {activeEnrollments.length > 0 ? (
                                 <div className='enrollment-section'>
                                     <div className='table-responsive'>
                                         <table className='enrollment-table'>
@@ -119,27 +145,40 @@ function StudentProfile() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {studentData.enrollments.map(e => (
+                                                {activeEnrollments.map(e => (
                                                     <tr key={e.name} className='enrollment-row'>
                                                         <td className='enrollment-cell enrollment-cell--course'>{e.courseName}</td>
                                                         <td className='enrollment-cell font-monospace'>{e.name}</td>
                                                         <td className='enrollment-cell font-monospace'>{e.classGroupName}</td>
                                                         <td className='enrollment-cell enrollment-cell--status'>
-                                                            {console.log(e.status.toLowerCase())}
                                                             <span className={"fw-bold text-"+badgeColors[`${e.status.toLowerCase()}`]}>
                                                                 {e.status}
                                                             </span>
                                                         </td>
                                                         <td className='enrollment-cell enrollment-cell--action position absolute' data-bs-display="static">
-                                                            <DeleteModal/>
+                                                            <DeleteModal 
+                                                                route={cancelRoute}
+                                                                method="patch"
+                                                                payload={cancelPayload}
+                                                                title="Cancelar matrícula?"
+                                                                message="Essa matrícula será cancelada e não poderá mudar de status."
+                                                                confirmLabel="Cancelar matrícula"
+                                                            />
                                                             <button className='enrollment-action-btn' type='button' title='Ações' data-bs-toggle="dropdown">
                                                                 <i className='bi bi-three-dots-vertical'></i>
                                                             </button>
                                                             <ul className="dropdown-menu">
-                                                                <li className='dropdown-item btn'>
-                                                                    <p className='m-0'>Trancar</p>
-                                                                </li>
-                                                                <li className='dropdown-item btn' data-bs-toggle="modal" data-bs-target="#delete-modal">
+                                                                {e.status === "ATIVA" && (
+                                                                    <li className='dropdown-item btn' onClick={() => changeEnrollmentStatus(e.id, "TRANCADA")}>
+                                                                        <p className='m-0'>Trancar</p>
+                                                                    </li>
+                                                                )}
+                                                                {e.status === "TRANCADA" && (
+                                                                    <li className='dropdown-item btn' onClick={() => changeEnrollmentStatus(e.id, "ATIVA")}>
+                                                                        <p className='m-0'>Ativar</p>
+                                                                    </li>
+                                                                )}
+                                                                <li className='dropdown-item btn' data-bs-toggle="modal" data-bs-target="#delete-modal" onClick={() => setCancelRoute('/api/manage-enrollments/'+e.id)}>
                                                                     <p className='text-danger m-0'>Cancelar</p>
                                                                 </li>
                                                             </ul>
@@ -151,7 +190,37 @@ function StudentProfile() {
                                     </div>
                                 </div>
                             ) : (
-                                <h3 className="text-center my-auto">Sem matrículas</h3>
+                                <h3 className="text-center my-auto">Sem matrículas ativas</h3>
+                            )}
+                            {showCanceled && canceledEnrollments.length > 0 && (
+                                <div className='enrollment-section mt-4'>
+                                    <div className='table-responsive'>
+                                        <table className='enrollment-table'>
+                                            <thead>
+                                                <tr>
+                                                    <th className='text-start'>Curso</th>
+                                                    <th>Matrícula</th>
+                                                    <th>Turma</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {canceledEnrollments.map(e => (
+                                                    <tr key={e.name} className='enrollment-row'>
+                                                        <td className='enrollment-cell enrollment-cell--course'>{e.courseName}</td>
+                                                        <td className='enrollment-cell font-monospace'>{e.name}</td>
+                                                        <td className='enrollment-cell font-monospace'>{e.classGroupName}</td>
+                                                        <td className='enrollment-cell enrollment-cell--status'>
+                                                            <span className={"fw-bold text-"+badgeColors[`${e.status.toLowerCase()}`]}>
+                                                                {e.status}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             )}
                         </>
                     )}
