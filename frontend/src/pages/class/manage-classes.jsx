@@ -33,7 +33,7 @@ function ManageClasses() {
                     bodyContent={classes} 
                     headerColumnClasses={{ 1: "width-1", 6: "width-1" }} 
                     bodyColumnClasses={{ 1: 'text-center p-0', 3: "text-start", 8: "text-center p-0 width-1" }} 
-                    ignoredProperties={['id', 'maxSeats', 'number', 'courseId']} 
+                    ignoredProperties={['id', 'maxSeats', 'number', 'courseId', 'nextEnrollmentNumber']} 
                     columnOrder={{
                         2: "name",
                         3: "courseName",
@@ -46,7 +46,7 @@ function ManageClasses() {
                         value: 'Profile', 
                         profileLink: true,
                         renderProfile: (itemId) => 
-                            renderProfileLink('/manage-classes/', itemId, 'bi bi-mortarboard-fill')
+                            renderProfileLink('/manage-classes/', itemId, 'bi bi-journal-bookmark')
                     }}
                     endColumn={{
                         delete: true, 

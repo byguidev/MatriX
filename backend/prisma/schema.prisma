@@ -50,6 +50,7 @@ model ClassGroup {
   number        Int          @map("numero")
   maxSeats      Int          @map("vagasMax")
   studentCount  Int          @map("qtdAlunos")
+  nextEnrollmentNumber Int   @default(0) @map("proximoNumeroMatricula")
   availableSeats Int?        @map("vagasDisponiveis")
   status        String      
 

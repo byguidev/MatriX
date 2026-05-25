@@ -4,7 +4,7 @@ import api from '../../services/api';
 import ClassFormModal from '../../components/class/class-form-modal';
 
 function ClassProfile() {
-    const ppColor = '#006eff'
+    const badgeColors = {PLANEJADA: "warning", ABERTA: "success", CONCLUIDA: "info"}
 
     const { id } = useParams();
     let [data, setData] = useState(null);
@@ -39,7 +39,7 @@ function ClassProfile() {
                     <div className="d-flex align-items-start justify-content-between mb-4 gap-4">
                         <div className="d-flex flex-column justify-content-center gap-2">
                             <h3 className="mb-1">{data.name}</h3>
-                            <p className="text-muted m-0">Situação: <span className="badge text-bg-success">{data.status}</span></p>
+                            <p className="text-muted m-0">Situação: <span className={"badge text-bg-"+badgeColors[`${data.status}`]}>{data.status}</span></p>
                         </div>
                     </div>
 

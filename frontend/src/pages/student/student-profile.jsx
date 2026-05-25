@@ -29,7 +29,16 @@ function StudentProfile() {
                 const response = await api.get(`/api/manage-students/${id}`);
                 const enrollments = response.data.enrollments ?? [];
                 setStudentData({ ...response.data, enrollments });
-                setStudentStatus(enrollments.length ? {message: "MATRICULADO", color: "success"} : {message: "SEM MATRÍCULA", color: "warning"});
+                const activeEnrollments = enrollments.filter(e => e.status !== "CANCELADA");
+                const hasActiveEnrollments = activeEnrollments.length > 0;
+                const allLocked = hasActiveEnrollments && activeEnrollments.every(e => e.status === "TRANCADA");
+                const statusMessage = allLocked
+                    ? { message: "MATRÍCULAS TRANCADAS", color: "secondary" }
+                    : hasActiveEnrollments
+                        ? { message: "MATRICULADO", color: "success" }
+                        : { message: "SEM MATRÍCULAS", color: "warning" };
+
+                setStudentStatus(statusMessage);
             } catch(e) {
                 console.error(e);
             }
@@ -78,7 +87,7 @@ function StudentProfile() {
                         </div>
                     </div>
 
-                    <div className="profile-tabs overflow-hidden">
+                    <div className="profile-tabs mb-4 overflow-hidden">
                         <button
                             className={`profile-tab ${activeTab === 'personal' ? 'active' : ''}`}
                             onClick={() => setActiveTab('personal')}
@@ -90,12 +99,12 @@ function StudentProfile() {
                             onClick={() => setActiveTab('enrollments')}
                         >
                             <i className="bi bi-bookmark-fill me-2"></i>Matrículas
-                            <span className="tab-badge">{studentData.enrollments.filter(e => e.status === 'ATIVA').length}</span>
+                            <span className="tab-badge">{studentData.enrollments.filter(e => e.status !== 'CANCELADA').length}</span>
                         </button>
                     </div>
 
                     {activeTab === 'personal' && (
-                        <div className="row g-3">
+                        <div className="row g-3 mx-0">
                             <button className="btn btn-outline-primary col" type="button" data-bs-toggle="modal" data-bs-target="#student-form-modal">
                                 <i className="bi bi-pencil-fill me-2"></i>Editar
                             </button>
@@ -118,7 +127,7 @@ function StudentProfile() {
                         </div>
                     )}
                     {activeTab === 'enrollments' && (
-                        <button className='btn btn-outline-primary w-100 my-4' type='button' data-bs-toggle="modal" data-bs-target="#enrollment-form-modal">
+                        <button className='btn btn-outline-primary w-100 mb-4' type='button' data-bs-toggle="modal" data-bs-target="#enrollment-form-modal">
                             <i className='bi bi-plus-lg me-2'></i>Nova Matrícula
                         </button>   
                     )}
@@ -183,10 +192,10 @@ function StudentProfile() {
                                     </div>
                                 </div>
                             ) : (
-                                <h3 className="text-center my-auto">Sem matrículas ativas</h3>
+                                <h3 className="text-center m-0">Sem matrículas ativas</h3>
                             )}
                             {canceledEnrollments.length > 0 && (
-                                <button className='btn btn-outline-secondary w-100 my-4' type='button' onClick={() => setShowCanceled((current) => !current)}>
+                                <button className={`btn btn-outline-secondary w-100 mt-4 mb-${showCanceled ? "4" : "0"}`} type='button' onClick={() => setShowCanceled((current) => !current)}>
                                     {showCanceled ? 'Ocultar canceladas' : `Mostrar canceladas (${canceledEnrollments.length})`}
                                 </button>
                             )}
