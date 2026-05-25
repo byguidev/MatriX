@@ -78,7 +78,7 @@ function StudentProfile() {
                         </div>
                     </div>
 
-                    <div className="profile-tabs mb-4 overflow-hidden">
+                    <div className="profile-tabs overflow-hidden">
                         <button
                             className={`profile-tab ${activeTab === 'personal' ? 'active' : ''}`}
                             onClick={() => setActiveTab('personal')}
@@ -90,7 +90,7 @@ function StudentProfile() {
                             onClick={() => setActiveTab('enrollments')}
                         >
                             <i className="bi bi-bookmark-fill me-2"></i>Matrículas
-                            <span className="tab-badge">{studentData.enrollments.length}</span>
+                            <span className="tab-badge">{studentData.enrollments.filter(e => e.status === 'ATIVA').length}</span>
                         </button>
                     </div>
 
@@ -118,16 +118,9 @@ function StudentProfile() {
                         </div>
                     )}
                     {activeTab === 'enrollments' && (
-                        <div className='enrollment-section__header row gap-2 mx-0'>
-                            <button className='btn btn-outline-primary col-12' type='button' data-bs-toggle="modal" data-bs-target="#enrollment-form-modal">
-                                <i className='bi bi-plus-lg me-2'></i>Nova Matrícula
-                            </button>
-                            {canceledEnrollments.length > 0 && (
-                                <button className='btn btn-outline-secondary col-12' type='button' onClick={() => setShowCanceled((current) => !current)}>
-                                    {showCanceled ? 'Ocultar canceladas' : `Mostrar canceladas (${canceledEnrollments.length})`}
-                                </button>
-                            )}
-                        </div>      
+                        <button className='btn btn-outline-primary w-100 my-4' type='button' data-bs-toggle="modal" data-bs-target="#enrollment-form-modal">
+                            <i className='bi bi-plus-lg me-2'></i>Nova Matrícula
+                        </button>   
                     )}
                     {activeTab === 'enrollments' && (
                         <>
@@ -192,8 +185,13 @@ function StudentProfile() {
                             ) : (
                                 <h3 className="text-center my-auto">Sem matrículas ativas</h3>
                             )}
+                            {canceledEnrollments.length > 0 && (
+                                <button className='btn btn-outline-secondary w-100 my-4' type='button' onClick={() => setShowCanceled((current) => !current)}>
+                                    {showCanceled ? 'Ocultar canceladas' : `Mostrar canceladas (${canceledEnrollments.length})`}
+                                </button>
+                            )}
                             {showCanceled && canceledEnrollments.length > 0 && (
-                                <div className='enrollment-section mt-4'>
+                                <div className='enrollment-section'>
                                     <div className='table-responsive'>
                                         <table className='enrollment-table'>
                                             <thead>
