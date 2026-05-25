@@ -8,6 +8,7 @@ import DeleteModal from "../../components/.common/delete-modal";
 import { useEffect, useState } from "react";
 
 function ManageStudents() {
+    const badgeColors = { PENDENTE: "warning", MATRICULADO: "success", TRANCADO: "secondary" };
     const [students, setStudents] = useState(null);
     const [selectedDeleteRoute, setSelectedDeleteRoute] = useState(null);
 
@@ -17,10 +18,16 @@ function ManageStudents() {
             const response = await api.get('/api/manage-students');
             
             setStudents(
-                response.data.map(s => ({
-                    ...s,
-                    status: s.enrollmentCount ? "MATRICULADO" : "PENDENTE"
-                }))
+                response.data.map(s => {
+                    const { enrollmentStatus, ...rest } = s;
+                    const statusLabel = enrollmentStatus ?? (s.enrollmentCount ? "MATRICULADO" : "PENDENTE");
+                    const statusColor = badgeColors[statusLabel] || "secondary";
+
+                    return {
+                        ...rest,
+                        status: <span className={`badge text-bg-${statusColor}`}>{statusLabel}</span>
+                    };
+                })
             );
         }
         loadStudents();
@@ -38,7 +45,7 @@ function ManageStudents() {
                     headerContent={tableHeaders} 
                     bodyContent={students} 
                     headerColumnClasses={{ 1: "width-1", 7: "width-1" }} 
-                    bodyColumnClasses={{ 1: 'text-center p-0', 2: "text-start", 5: "text-start", 8: "text-center p-0 width-1" }} 
+                    bodyColumnClasses={{ 1: 'text-center p-0', 2: "text-start", 3: "font-monospace", 4: "font-monospace", 6: "font-monospace", 5: "text-start", 8: "text-center p-0 width-1" }} 
                     ignoredProperties={['id', 'enrollmentDate', 'enrollmentCount']} 
                     startColumn={{
                         value: 'Profile', 

@@ -32,7 +32,7 @@ function ManageCourses() {
                     headerContent={tableHeaders} 
                     bodyContent={courses} 
                     headerColumnClasses={{ 1: "width-1", 6: "width-1" }} 
-                    bodyColumnClasses={{ 1: 'text-center p-0', 2: "text-start", 6: "text-center p-0" }} 
+                    bodyColumnClasses={{ 1: 'text-center p-0', 2: "text-start", 3: "font-monospace", 6: "text-center p-0" }} 
                     ignoredProperties={['id']} 
                     startColumn={{
                         value: 'Profile', 

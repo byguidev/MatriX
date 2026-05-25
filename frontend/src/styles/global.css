@@ -90,6 +90,17 @@ html, body, #root {
   background-color: #ffffff;
 }
 
+.app-header__add {
+  background: linear-gradient(180deg, #00caee, #00acca) !important;
+  color: white !important;
+  transition: all 0.3s ease !important;
+}
+
+.app-header__add:hover {
+  scale: 1.01;
+  background: linear-gradient(180deg, #00adcc, #0091aa) !important;
+}
+
 /* Título e subtítulo do cabeçalho das páginas. */
 .app-header__eyebrow {
   font-size: 0.75rem;

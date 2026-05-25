@@ -15,7 +15,7 @@ function AppHeader({ title, ModalComponent, modalId }) {
                             <input type="search" placeholder="Buscar" name="#" id="#" className="form-control"/>
                         </div>
                         {/* o botao abre o modal de cadastro/edicao recebido por props */}
-                        <button type="button" className="btn btn-primary w-100 align-self-start" data-bs-toggle="modal" data-bs-target={modalId}>Adicionar +</button>
+                        <button type="button" className="btn w-100 align-self-start app-header__add" data-bs-toggle="modal" data-bs-target={modalId}>Adicionar +</button>
                     </form>
                     {ModalComponent && <ModalComponent />}
                 </div>

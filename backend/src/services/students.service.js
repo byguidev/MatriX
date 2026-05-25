@@ -6,13 +6,26 @@ const { createEnrollment } = require('../services/enrollments.service');
 
 // busca alunos ordenados e entrega campos prontos para exibicao na tabela
 async function listStudents() {
-  const rows = await prisma.student.findMany({ orderBy: { fullName: 'asc' } });
+  const rows = await prisma.student.findMany({
+    orderBy: { fullName: 'asc' },
+    include: { enrollments: { select: { status: true } } }
+  });
   
   rows.forEach(row => {
     row.phone = formatter.formatPhone(row.phone);
     row.cpf = formatter.formatCpf(row.cpf);
     row.birthDate = formatter.formatDate(row.birthDate);
     row.enrollmentDate = formatter.formatDate(row.enrollmentDate);
+
+    const activeEnrollments = row.enrollments.filter(enrollment => enrollment.status !== "CANCELADA");
+    const hasActiveEnrollments = activeEnrollments.length > 0;
+    const allLocked = hasActiveEnrollments && activeEnrollments.every(enrollment => enrollment.status === "TRANCADA");
+    row.enrollmentStatus = allLocked
+      ? "TRANCADO"
+      : hasActiveEnrollments
+        ? "MATRICULADO"
+        : "PENDENTE";
+    delete row.enrollments;
   });
   return rows;
 }

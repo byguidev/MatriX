@@ -33,10 +33,10 @@ function StudentProfile() {
                 const hasActiveEnrollments = activeEnrollments.length > 0;
                 const allLocked = hasActiveEnrollments && activeEnrollments.every(e => e.status === "TRANCADA");
                 const statusMessage = allLocked
-                    ? { message: "MATRÍCULAS TRANCADAS", color: "secondary" }
+                    ? { message: "TRANCADO", color: "secondary" }
                     : hasActiveEnrollments
                         ? { message: "MATRICULADO", color: "success" }
-                        : { message: "SEM MATRÍCULAS", color: "warning" };
+                        : { message: "PENDENTE", color: "warning" };
 
                 setStudentStatus(statusMessage);
             } catch(e) {

@@ -65,7 +65,7 @@ function DataTable({
                         ))}
                     </tr>
                 </thead>
-                <tbody className="app-table__body font-monospace">
+                <tbody className="app-table__body">
                     {bodyContent.map((row, rowIndex) => (
                         <tr key={rowIndex}>
                             <td className={getBodyClass(0)}>{startColumn.profileLink ? startColumn.renderProfile(row['id']) : startColumn.value}</td>
