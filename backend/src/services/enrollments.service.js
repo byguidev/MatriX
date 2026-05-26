@@ -81,6 +81,14 @@ async function changeEnrollmentStatus(enrollmentId, status) {
           }
         })
       } else {
+        const classGroup = await tx.classGroup.findUnique({ 
+          where: { id: enrollment.classGroupId },
+          select: { availableSeats: true }
+        });
+        
+        console.log(classGroup.availableSeats);
+        if (classGroup.availableSeats === 0) throw new AppError("Maximum number of available seats reached", 400);
+
         await tx.classGroup.update({
           where: {id: Number(enrollment.classGroupId)},
           data: {

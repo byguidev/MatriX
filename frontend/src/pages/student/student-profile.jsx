@@ -16,11 +16,19 @@ function StudentProfile() {
     let [cancelRoute, setCancelRoute] = useState(null);
     let [activeTab, setActiveTab] = useState('personal');
     let [showCanceled, setShowCanceled] = useState(false);
+    let [serverError, setServerError] = useState(null);
 
     const enrollmentStatusSchema = z.object({
         status: z.enum(["ATIVA", "TRANCADA", "CANCELADA"], { message: "Valor inválido" })
     });
     const cancelPayload = enrollmentStatusSchema.parse({ status: "CANCELADA" });
+
+    // limpa serverError automaticamente após 3 segundos
+    useEffect(() => {
+        if (!serverError) return;
+        const timer = setTimeout(() => setServerError(null), 3000);
+        return () => clearTimeout(timer);
+    }, [serverError]);
 
     // busca dados completos do aluno para exibir e editar no mesmo fluxo
     useEffect(() => {
@@ -51,8 +59,9 @@ function StudentProfile() {
             const payload = enrollmentStatusSchema.parse({ status: nextStatus });
             await api.patch(`/api/manage-enrollments/${enrollmentId}`, payload);
             window.location.reload();
-        } catch (e) {
-            console.error(e);
+        } catch (err) {
+            const message = err.response?.data?.message || 'Erro ao conectar com o servidor';
+            setServerError(message);
         }
     };
 
@@ -65,6 +74,16 @@ function StudentProfile() {
         <div className="d-flex flex-column h-100 w-100">
             <StudentFormModal data={studentData} title={'Editar dados'} />
             <EnrollmentFormModal studentId={id} />
+            {serverError && (
+                <div className="position-fixed bottom-0 start-50 translate-middle-x p-3" style={{ zIndex: 1100 }}>
+                    <div className="toast show align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div className="d-flex">
+                            <div className="toast-body">{serverError}</div>
+                            <button type="button" className="btn-close btn-close-white me-2 m-auto" onClick={() => setServerError(null)} data-bs-dismiss="toast" aria-label="Fechar"></button>
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className="d-flex flex-column align-items-start p-4 gap-3">
                 <Link to="/manage-students" className='app-header__eyebrow'>
                     <i className="bi bi-house-fill"></i>

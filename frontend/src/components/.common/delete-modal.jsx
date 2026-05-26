@@ -12,12 +12,18 @@ export default function DeleteModal({
     async function sendRequest() {
         if (!route) return;
         // remove item no backend e recarrega a lista para refletir o estado atual
-        if (method === "delete") {
-            await api.delete(route);
-        } else {
-            await api[method](route, payload);
+        try {
+            if (method === "delete") {
+                await api.delete(route);
+            } else {
+                await api[method](route, payload);
+            }
+            window.location.reload(); // atualiza a tabela carregando os dados do servidor
+        } catch (err) {
+            const message = err.response?.data?.message || 'Erro ao conectar com o servidor';
+            console.log(err);
         }
-        window.location.reload(); // atualiza a tabela carregando os dados do servidor
+
     }
 
     return (
