@@ -3,6 +3,12 @@ const AppError = require('../errors/AppError');
 const handleDbError = require('../errors/handleDbError');
 const { addDays } = require('../utils/invoice-helpers');
 
+async function listEnrollments(id) {
+  const enrollments = await prisma.enrollment.findMany({ where: { studentId: Number(id) } });
+  if (!enrollments) throw new AppError("Enrollments not found", 404);
+  return enrollments;
+}
+
 // cria matricula do aluno e sincroniza contadores de aluno e turma
 async function createEnrollment(studentId, courseId, classGroupId, tx = null) {
   const run = async (db) => {
@@ -171,6 +177,7 @@ async function changeEnrollmentStatus(enrollmentId, status, options = {}) {
 }
 
 module.exports = {
+    listEnrollments,
     createEnrollment,
     changeEnrollmentStatus,
 }

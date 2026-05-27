@@ -7,6 +7,7 @@ const validate = require('../middlewares/validateSchema.middleware');
 
 const enrollmentsRouter = Router();
 
+enrollmentsRouter.get('/:id', asyncHandler(enrollmentsController.listEnrollments));
 enrollmentsRouter.post('/:id', validate(createEnrollmentSchema), asyncHandler(enrollmentsController.createEnrollment));
 enrollmentsRouter.patch('/:id', validate(changeEnrollmentStatusSchema), asyncHandler(enrollmentsController.changeEnrollmentStatus));
 
