@@ -25,7 +25,12 @@ function ManageStudents() {
 
                     return {
                         ...rest,
-                        status: <span className={`fw-bold text-${statusColor}`}>{statusLabel}</span>
+                        status: (
+                            <span className={`status-label text-${statusColor}`}>
+                                <span className="status-label__dot" aria-hidden="true"></span>
+                                {statusLabel}
+                            </span>
+                        )
                     };
                 })
             );

@@ -180,7 +180,7 @@ function StudentProfile() {
                                                             </Link>
                                                         </td>
                                                         <td className='enrollment-cell enrollment-cell--status'>
-                                                            <span className={"fw-bold text-"+badgeColors[`${e.status.toLowerCase()}`]}>
+                                                            <span className={"fw-bold badge text-bg-"+badgeColors[`${e.status.toLowerCase()}`]}>
                                                                 {e.status}
                                                             </span>
                                                         </td>
@@ -253,7 +253,7 @@ function StudentProfile() {
                                                             </Link>
                                                         </td>
                                                         <td className='enrollment-cell enrollment-cell--status'>
-                                                            <span className={"fw-bold text-"+badgeColors[`${e.status.toLowerCase()}`]}>
+                                                            <span className={"fw-bold badge text-bg-"+badgeColors[`${e.status.toLowerCase()}`]}>
                                                                 {e.status}
                                                             </span>
                                                         </td>

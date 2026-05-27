@@ -280,7 +280,7 @@ const COLLAPSE_IDS = ["collapse-students", "collapse-courses"]
                                 ? "bi bi-book-fill me-2"
                                 : "bi bi-book-fill"
                             }></i>
-                            <span className={iconVisibility}>Cursos</span>
+                            <span className={iconVisibility}>Ensino</span>
                         </a>
                         <ul className="navbar-nav collapse w-100 ps-4" id="collapse-courses">
                             <li className="nav-item border-bottom w-100">
