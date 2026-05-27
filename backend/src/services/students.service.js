@@ -3,6 +3,7 @@ const formatter = require('../utils/formatters');
 const AppError = require('../errors/AppError');
 const handleDbError = require('../errors/handleDbError');
 const { createEnrollment } = require('../services/enrollments.service');
+const invoicesService = require('../services/invoices.service');
 
 // busca alunos ordenados e entrega campos prontos para exibicao na tabela
 async function listStudents() {
@@ -38,6 +39,7 @@ async function getStudentProfile(id) {
 
 
   if (!student) throw new AppError("Student not found", 404);
+  await invoicesService.syncInvoices();
   enrollments.length ? student.enrollments = enrollments : student.enrollments = [];
 
   for (let i = 0; i < enrollments.length; i++) {
@@ -52,6 +54,38 @@ async function getStudentProfile(id) {
     student.enrollments[i].courseName = course.name;
     student.enrollments[i].classGroupName = classGroup.name;
   }
+
+  const invoices = await prisma.fatura.findMany({
+    where: { studentId: Number(id) },
+    orderBy: { issueDate: 'desc' },
+    include: {
+      enrollment: {
+        select: {
+          id: true,
+          name: true,
+          classGroupId: true,
+          courseId: true,
+          classGroup: { select: { name: true } },
+          course: { select: { name: true } },
+        }
+      }
+    }
+  });
+
+  student.invoices = invoices.map(invoice => ({
+    id: invoice.id,
+    enrollmentId: invoice.enrollmentId,
+    enrollmentName: invoice.enrollment?.name ?? null,
+    courseId: invoice.enrollment?.courseId ?? null,
+    courseName: invoice.enrollment?.course?.name ?? null,
+    classGroupId: invoice.enrollment?.classGroupId ?? null,
+    classGroupName: invoice.enrollment?.classGroup?.name ?? null,
+    value: formatter.formatCurrency(Number(invoice.value)),
+    issueDate: formatter.formatDate(invoice.issueDate),
+    dueDate: formatter.formatDate(invoice.dueDate),
+    currency: invoice.currency,
+    status: invoice.status,
+  }));
 
   student.phone = formatter.formatPhone(student.phone);
   student.cpf = formatter.formatCpf(student.cpf);

@@ -128,13 +128,17 @@ async function ensureRecurringInvoices(db, now) {
     }
 }
 
+async function syncInvoices(db = prisma, now = new Date()) {
+    await ensureRecurringInvoices(db, now);
+    await syncOverdueInvoices(db, now);
+}
+
 async function listInvoices() {
     try {
         return await prisma.$transaction(async (tx) => {
             const now = new Date();
 
-            await ensureRecurringInvoices(tx, now);
-            await syncOverdueInvoices(tx, now);
+            await syncInvoices(tx, now);
 
             const invoices = await tx.fatura.findMany({
                 orderBy: { issueDate: "desc" },
@@ -232,4 +236,5 @@ async function changeInvoiceStatus(invoiceId, status) {
 module.exports = {
     listInvoices,
     changeInvoiceStatus,
+    syncInvoices,
 };

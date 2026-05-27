@@ -9,6 +9,7 @@ import DeleteModal from '../../components/.common/delete-modal';
 function StudentProfile() {
     const ppColor = '#5e5e5e';
     const badgeColors = {ativa: "success", trancada: "secondary", cancelada: "danger"};
+    const invoiceColors = { ABERTA: "warning", VENCIDA: "danger", PAGA: "success" };
 
     const { id } = useParams();
     let [studentData, setStudentData] = useState(null);
@@ -16,6 +17,7 @@ function StudentProfile() {
     let [cancelRoute, setCancelRoute] = useState(null);
     let [activeTab, setActiveTab] = useState('personal');
     let [showCanceled, setShowCanceled] = useState(false);
+    let [showPaid, setShowPaid] = useState(false);
     let [serverError, setServerError] = useState(null);
 
     const enrollmentStatusSchema = z.object({
@@ -36,7 +38,8 @@ function StudentProfile() {
             try {
                 const response = await api.get(`/api/manage-students/${id}`);
                 const enrollments = response.data.enrollments ?? [];
-                setStudentData({ ...response.data, enrollments });
+                const invoices = response.data.invoices ?? [];
+                setStudentData({ ...response.data, enrollments, invoices });
                 const activeEnrollments = enrollments.filter(e => e.status !== "CANCELADA");
                 const hasActiveEnrollments = activeEnrollments.length > 0;
                 const allLocked = hasActiveEnrollments && activeEnrollments.every(e => e.status === "TRANCADA");
@@ -67,6 +70,8 @@ function StudentProfile() {
 
     const activeEnrollments = studentData?.enrollments?.filter(e => e.status !== "CANCELADA") ?? [];
     const canceledEnrollments = studentData?.enrollments?.filter(e => e.status === "CANCELADA") ?? [];
+    const openInvoices = studentData?.invoices?.filter(i => i.status !== "PAGA") ?? [];
+    const paidInvoices = studentData?.invoices?.filter(i => i.status === "PAGA") ?? [];
 
     // renderiza spinner ate o retorno da api
     return studentData ? (
@@ -119,6 +124,13 @@ function StudentProfile() {
                         >
                             <i className="bi bi-bookmark-fill me-2"></i>Matrículas
                             <span className="tab-badge">{studentData.enrollments.filter(e => e.status !== 'CANCELADA').length}</span>
+                        </button>
+                        <button
+                            className={`profile-tab ${activeTab === 'invoices' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('invoices')}
+                        >
+                            <i className="bi bi-receipt-cutoff me-2"></i>Faturas
+                            <span className="tab-badge">{openInvoices.length}</span>
                         </button>
                     </div>
 
@@ -255,6 +267,122 @@ function StudentProfile() {
                                                         <td className='enrollment-cell enrollment-cell--status'>
                                                             <span className={"fw-bold badge text-bg-"+badgeColors[`${e.status.toLowerCase()}`]}>
                                                                 {e.status}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+                    {activeTab === 'invoices' && (
+                        <>
+                            {openInvoices.length > 0 ? (
+                                <div className='enrollment-section'>
+                                    <div className='table-responsive'>
+                                        <table className='enrollment-table'>
+                                            <thead>
+                                                <tr>
+                                                    <th className='text-start'>Curso</th>
+                                                    <th>Turma</th>
+                                                    <th>Matrícula</th>
+                                                    <th>Emissão</th>
+                                                    <th>Vencimento</th>
+                                                    <th>Valor</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {openInvoices.map((invoice) => (
+                                                    <tr key={invoice.id} className='enrollment-row'>
+                                                        <td className='enrollment-cell enrollment-cell--course'>
+                                                            {invoice.courseId ? (
+                                                                <Link to={`/manage-courses/${invoice.courseId}`} className="text-decoration-none" style={{ color: 'inherit' }}>
+                                                                    {invoice.courseName}
+                                                                </Link>
+                                                            ) : (
+                                                                invoice.courseName
+                                                            )}
+                                                        </td>
+                                                        <td className='enrollment-cell font-monospace'>
+                                                            {invoice.classGroupId ? (
+                                                                <Link to={`/manage-classes/${invoice.classGroupId}`} className="text-decoration-none" style={{ color: 'inherit' }}>
+                                                                    {invoice.classGroupName}
+                                                                </Link>
+                                                            ) : (
+                                                                invoice.classGroupName
+                                                            )}
+                                                        </td>
+                                                        <td className='enrollment-cell font-monospace'>{invoice.enrollmentName}</td>
+                                                        <td className='enrollment-cell font-monospace'>{invoice.issueDate}</td>
+                                                        <td className='enrollment-cell font-monospace'>{invoice.dueDate}</td>
+                                                        <td className='enrollment-cell font-monospace'>{invoice.value}</td>
+                                                        <td className='enrollment-cell enrollment-cell--status'>
+                                                            <span className={`status-label badge text-bg-${invoiceColors[invoice.status] ?? "secondary"}`}>
+                                                                <span className="status-label__dot" aria-hidden="true"></span>
+                                                                {invoice.status}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            ) : (
+                                <h3 className="text-center m-0">Sem faturas em aberto</h3>
+                            )}
+                            {paidInvoices.length > 0 && (
+                                <button className={`btn btn-outline-secondary w-100 mt-4 mb-${showPaid ? "4" : "0"}`} type='button' onClick={() => setShowPaid((current) => !current)}>
+                                    {showPaid ? 'Ocultar pagas' : `Mostrar pagas (${paidInvoices.length})`}
+                                </button>
+                            )}
+                            {showPaid && paidInvoices.length > 0 && (
+                                <div className='enrollment-section'>
+                                    <div className='table-responsive'>
+                                        <table className='enrollment-table'>
+                                            <thead>
+                                                <tr>
+                                                    <th className='text-start'>Curso</th>
+                                                    <th>Turma</th>
+                                                    <th>Matrícula</th>
+                                                    <th>Emissão</th>
+                                                    <th>Vencimento</th>
+                                                    <th>Valor</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {paidInvoices.map((invoice) => (
+                                                    <tr key={invoice.id} className='enrollment-row'>
+                                                        <td className='enrollment-cell enrollment-cell--course'>
+                                                            {invoice.courseId ? (
+                                                                <Link to={`/manage-courses/${invoice.courseId}`} className="text-decoration-none" style={{ color: 'inherit' }}>
+                                                                    {invoice.courseName}
+                                                                </Link>
+                                                            ) : (
+                                                                invoice.courseName
+                                                            )}
+                                                        </td>
+                                                        <td className='enrollment-cell font-monospace'>
+                                                            {invoice.classGroupId ? (
+                                                                <Link to={`/manage-classes/${invoice.classGroupId}`} className="text-decoration-none" style={{ color: 'inherit' }}>
+                                                                    {invoice.classGroupName}
+                                                                </Link>
+                                                            ) : (
+                                                                invoice.classGroupName
+                                                            )}
+                                                        </td>
+                                                        <td className='enrollment-cell font-monospace'>{invoice.enrollmentName}</td>
+                                                        <td className='enrollment-cell font-monospace'>{invoice.issueDate}</td>
+                                                        <td className='enrollment-cell font-monospace'>{invoice.dueDate}</td>
+                                                        <td className='enrollment-cell font-monospace'>{invoice.value}</td>
+                                                        <td className='enrollment-cell enrollment-cell--status'>
+                                                            <span className={`status-label badge text-bg-${invoiceColors[invoice.status] ?? "secondary"}`}>
+                                                                {invoice.status}
                                                             </span>
                                                         </td>
                                                     </tr>
