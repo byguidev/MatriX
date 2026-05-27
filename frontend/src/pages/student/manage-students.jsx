@@ -109,34 +109,34 @@ function ManageStudents() {
                 activeTab === 'overview' && (
                     <div className="row m-0 p-3 g-3">
                         <div className="col-12 col-sm-6 col-md">
-                            <div className="card">
+                            <div className="card summary-card">
                                 <div className="card-body">
-                                    <h5 className="card-title text-center">Total de Alunos</h5>
-                                    <h1 className="text-center p-4 text-primary">{studentsNumbers.total}</h1>
+                                    <h5 className="card-title summary-card__title text-center">Total de Alunos</h5>
+                                    <h1 className="summary-card__value text-center text-primary">{studentsNumbers.total}</h1>
                                 </div>
                             </div>
                         </div>
                         <div className="col-12 col-sm-6 col-md">
-                            <div className="card">
+                            <div className="card summary-card">
                                 <div className="card-body">
-                                    <h5 className="card-title text-center">Matrícula Ativa</h5>
-                                    <h1 className="text-center p-4 text-success">{studentsNumbers.enrolled}</h1>
+                                    <h5 className="card-title summary-card__title text-center">Matrícula Ativa</h5>
+                                    <h1 className="summary-card__value text-center text-success">{studentsNumbers.enrolled}</h1>
                                 </div>
                             </div>
                         </div>
                         <div className="col-12 col-sm-6 col-md">
-                            <div className="card">
+                            <div className="card summary-card">
                                 <div className="card-body">
-                                    <h5 className="card-title text-center">Matrícula Pendente</h5>
-                                    <h1 className="text-center p-4 text-danger">{studentsNumbers.pendingEnrollment}</h1>
+                                    <h5 className="card-title summary-card__title text-center">Matrícula Pendente</h5>
+                                    <h1 className="summary-card__value text-center text-danger">{studentsNumbers.pendingEnrollment}</h1>
                                 </div>
                             </div>
                         </div>
                         <div className="col-12 col-sm-6 col-md">
-                            <div className="card">
+                            <div className="card summary-card">
                                 <div className="card-body">
-                                    <h5 className="card-title text-center">Matrícula Trancada</h5>
-                                    <h1 className="text-center p-4 text-secondary">{studentsNumbers.lockedEnrollments}</h1>
+                                    <h5 className="card-title summary-card__title text-center">Matrícula Trancada</h5>
+                                    <h1 className="summary-card__value text-center text-secondary">{studentsNumbers.lockedEnrollments}</h1>
                                 </div>
                             </div>
                         </div>
