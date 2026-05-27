@@ -1,4 +1,4 @@
-function AppHeader({ title, ModalComponent, modalId }) {
+function AppHeader({ title, ModalComponent, modalId, showSearch = true }) {
     
     return (
         // padrao de cabecalho compartilhado entre as telas de gerenciamento
@@ -9,16 +9,20 @@ function AppHeader({ title, ModalComponent, modalId }) {
                     <div className="col-12 col-md-4">
                         <h1 className="app-header__title">{title}</h1>
                     </div>
-                    <form action="#" method="#" className="d-flex col-12 col-md-8 gap-1 gap-md-3 mt-3 mt-md-0">
-                        <div className="input-group align-items-start">
-                            <span className="input-group-text"><i className="bi bi-search"></i></span>
-                            <input type="search" placeholder="Buscar" name="#" id="#" className="form-control"/>
-                        </div>
-                        {/* o botao abre o modal de cadastro/edicao recebido por props */}
-                        {ModalComponent && (
-                            <button type="button" className="btn btn-outline-primary w-100 align-self-start" data-bs-toggle="modal" data-bs-target={modalId}>Adicionar +</button>
-                        )}
-                    </form>
+                    {(showSearch || ModalComponent) && (
+                        <form action="#" method="#" className="d-flex col-12 col-md-8 gap-1 gap-md-3 mt-3 mt-md-0">
+                            {showSearch && (
+                                <div className="input-group align-items-start">
+                                    <span className="input-group-text"><i className="bi bi-search"></i></span>
+                                    <input type="search" placeholder="Buscar" name="#" id="#" className="form-control"/>
+                                </div>
+                            )}
+                            {/* o botao abre o modal de cadastro/edicao recebido por props */}
+                            {ModalComponent && (
+                                <button type="button" className="btn btn-outline-primary w-100 align-self-start" data-bs-toggle="modal" data-bs-target={modalId}>Adicionar +</button>
+                            )}
+                        </form>
+                    )}
                     {ModalComponent && <ModalComponent />}
                 </div>
             </div>

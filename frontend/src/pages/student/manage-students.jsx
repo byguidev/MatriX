@@ -11,6 +11,7 @@ function ManageStudents() {
     const badgeColors = { PENDENTE: "warning", MATRICULADO: "success", TRANCADO: "secondary" };
     const [students, setStudents] = useState(null);
     const [selectedDeleteRoute, setSelectedDeleteRoute] = useState(null);
+    const [activeTab, setActiveTab] = useState('data');
 
     // carrega lista inicial para alimentar a tabela de alunos
     useEffect(() => {
@@ -43,28 +44,51 @@ function ManageStudents() {
     // exibe spinner enquanto a api ainda nao retornou os registros
     return students ? (
         <div className="d-flex flex-column h-100 bg-light">
-            <AppHeader title="GERENCIAR ALUNOS" ModalComponent={() => <StudentFormModal title={'Cadastrar aluno'} />} modalId={"#student-form-modal"} />
+            <AppHeader
+                title="GERENCIAR ALUNOS"
+                ModalComponent={() => <StudentFormModal title={'Cadastrar aluno'} />}
+                modalId={"#student-form-modal"}
+                showSearch={activeTab === 'data'}
+            />
+            <div className="px-3 px-md-4 pt-4">
+                <div className="profile-tabs mb-4 overflow-hidden">
+                    <button
+                        className={`profile-tab ${activeTab === 'overview' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('overview')}
+                    >
+                        <i className="bi bi-columns-gap me-2"></i>Visão geral
+                    </button>
+                    <button
+                        className={`profile-tab ${activeTab === 'data' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('data')}
+                    >
+                        <i className="bi bi-table me-2"></i>Dados
+                    </button>
+                </div>
+            </div>
             {
-                students.length ? (
-                    <DataTable 
-                    headerContent={tableHeaders} 
-                    bodyContent={students} 
-                    headerColumnClasses={{ 1: "width-1", 7: "width-1" }} 
-                    bodyColumnClasses={{ 1: 'text-center p-0', 2: "text-start", 3: "font-monospace", 4: "font-monospace", 6: "font-monospace", 5: "text-start", 8: "text-center p-0 width-1" }} 
-                    ignoredProperties={['id', 'enrollmentDate', 'enrollmentCount']} 
-                    startColumn={{
-                        value: 'Profile', 
-                        profileLink: true,
-                        renderProfile: (itemId) => 
-                            renderProfileLink('/manage-students/', itemId, 'bi bi-person-square')
-                    }}
-                    endColumn={{
-                        delete: true, 
-                        deleteCell: (itemId) => 
-                            deleteActionCell('/api/manage-students/', itemId, setSelectedDeleteRoute)
-                    }}/>
-                ) : (
-                    <h3 className="text-center my-auto">Sem alunos cadastrados</h3>
+                activeTab === 'data' && (
+                    students.length ? (
+                        <DataTable 
+                        headerContent={tableHeaders} 
+                        bodyContent={students} 
+                        headerColumnClasses={{ 1: "width-1", 7: "width-1" }} 
+                        bodyColumnClasses={{ 1: 'text-center p-0', 2: "text-start", 3: "font-monospace", 4: "font-monospace", 6: "font-monospace", 5: "text-start", 8: "text-center p-0 width-1" }} 
+                        ignoredProperties={['id', 'enrollmentDate', 'enrollmentCount']} 
+                        startColumn={{
+                            value: 'Profile', 
+                            profileLink: true,
+                            renderProfile: (itemId) => 
+                                renderProfileLink('/manage-students/', itemId, 'bi bi-person-square')
+                        }}
+                        endColumn={{
+                            delete: true, 
+                            deleteCell: (itemId) => 
+                                deleteActionCell('/api/manage-students/', itemId, setSelectedDeleteRoute)
+                        }}/>
+                    ) : (
+                        <h3 className="text-center my-auto">Sem alunos cadastrados</h3>
+                    )
                 )
             }
             <DeleteModal route={selectedDeleteRoute}/>

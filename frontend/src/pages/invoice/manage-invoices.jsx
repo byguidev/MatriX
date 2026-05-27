@@ -8,6 +8,7 @@ function ManageInvoices() {
     const statusColors = { ABERTA: "warning", VENCIDA: "danger", PAGA: "success" };
     const [invoices, setInvoices] = useState(null);
     const [serverError, setServerError] = useState(null);
+    const [activeTab, setActiveTab] = useState('data');
 
     useEffect(() => {
         async function loadInvoices() {
@@ -104,50 +105,70 @@ function ManageInvoices() {
 
     return invoices ? (
         <div className="d-flex flex-column h-100 bg-light">
-            <AppHeader title="GERENCIAR FATURAS" />
-            {serverError && (
-                <div className="alert alert-danger mx-4 mt-3 mb-0" role="alert">
-                    {serverError}
+            <AppHeader title="GERENCIAR FATURAS" showSearch={activeTab === 'data'} />
+            <div className="px-3 px-md-4 pt-4">
+                <div className="profile-tabs mb-4 overflow-hidden">
+                    <button
+                        className={`profile-tab ${activeTab === 'overview' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('overview')}
+                    >
+                        <i className="bi bi-columns-gap me-2"></i>Visão geral
+                    </button>
+                    <button
+                        className={`profile-tab ${activeTab === 'data' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('data')}
+                    >
+                        <i className="bi bi-table me-2"></i>Dados
+                    </button>
                 </div>
-            )}
-            {invoices.length ? (
-                <DataTable
-                    headerContent={tableHeaders}
-                    bodyContent={tableRows}
-                    headerColumnClasses={{ 1: "width-1", 11: "width-1" }}
-                    bodyColumnClasses={{
-                        1: "text-center p-0",
-                        2: "text-start",
-                        3: "text-start",
-                        4: "text-start",
-                        5: "font-monospace",
-                        6: "font-monospace",
-                        7: "font-monospace",
-                        8: "font-monospace",
-                        9: "text-center",
-                        10: "text-center",
-                        11: "text-center p-0 width-1"
-                    }}
-                    ignoredProperties={['id']}
-                    columnOrder={{
-                        2: "studentName",
-                        3: "courseName",
-                        4: "classGroupName",
-                        5: "enrollmentName",
-                        6: "issueDate",
-                        7: "dueDate",
-                        8: "value",
-                        9: "currency",
-                        10: "status",
-                    }}
-                    startColumn={{ value: "" }}
-                    endColumn={{
-                        delete: true,
-                        deleteCell: (itemId) => renderStatusSelect(itemId)
-                    }}
-                />
-            ) : (
-                <h3 className="text-center my-auto">Sem faturas cadastradas</h3>
+            </div>
+            {activeTab === 'data' && (
+                <>
+                    {serverError && (
+                        <div className="alert alert-danger mx-4 mt-3 mb-0" role="alert">
+                            {serverError}
+                        </div>
+                    )}
+                    {invoices.length ? (
+                        <DataTable
+                            headerContent={tableHeaders}
+                            bodyContent={tableRows}
+                            headerColumnClasses={{ 1: "width-1", 11: "width-1" }}
+                            bodyColumnClasses={{
+                                1: "text-center p-0",
+                                2: "text-start",
+                                3: "text-start",
+                                4: "text-start",
+                                5: "font-monospace",
+                                6: "font-monospace",
+                                7: "font-monospace",
+                                8: "font-monospace",
+                                9: "text-center",
+                                10: "text-center",
+                                11: "text-center p-0 width-1"
+                            }}
+                            ignoredProperties={['id']}
+                            columnOrder={{
+                                2: "studentName",
+                                3: "courseName",
+                                4: "classGroupName",
+                                5: "enrollmentName",
+                                6: "issueDate",
+                                7: "dueDate",
+                                8: "value",
+                                9: "currency",
+                                10: "status",
+                            }}
+                            startColumn={{ value: "" }}
+                            endColumn={{
+                                delete: true,
+                                deleteCell: (itemId) => renderStatusSelect(itemId)
+                            }}
+                        />
+                    ) : (
+                        <h3 className="text-center my-auto">Sem faturas cadastradas</h3>
+                    )}
+                </>
             )}
         </div>
     ) : (
