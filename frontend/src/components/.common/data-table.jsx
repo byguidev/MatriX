@@ -41,33 +41,36 @@ function DataTable({
 
     // aplica classes personalizadas do cabecalho por posicao de coluna
     const getHeaderClass = colIndex => {
-        return `sticky-top text-center app-table__head-cell ${headerColumnClasses[colIndex + 1] || ''}`;
+        return `text-center ${headerColumnClasses[colIndex + 1] || ''}`;
     };
 
     // centraliza por padrao e respeita alinhamentos especificos por coluna
     const getBodyClass = colIndex => {
         const columnClass = bodyColumnClasses[colIndex + 1] || "";
-        return `${columnClass.includes("text-start") || columnClass.includes("text-end") ? columnClass : `${columnClass} text-center`}`;
+        const alignment = columnClass.includes("text-start") || columnClass.includes("text-end")
+            ? columnClass
+            : `${columnClass} text-center`;
+        return `enrollment-cell ${alignment}`;
     };
 
     return (
         <div
-            className="table-responsive flex-grow-1 w-100 overflow-auto app-table-shell"
+            className="table-responsive flex-grow-1 w-100 overflow-auto"
             style={{ minWidth: 0, maxHeight: '100%' }}
         >
-            <table className="table table-hover align-middle text-nowrap m-0 app-table">
-                <thead className="app-table__head border-bottom">
+            <table className="enrollment-table text-nowrap">
+                <thead>
                     <tr>
                         {headerContent.map((headerLabel, colIndex) => (
-                            <th key={colIndex} className={`${getHeaderClass(colIndex)} border-0`}>
+                            <th key={colIndex} className={getHeaderClass(colIndex)}>
                                 {headerLabel}
                             </th>
                         ))}
                     </tr>
                 </thead>
-                <tbody className="app-table__body">
+                <tbody>
                     {bodyContent.map((row, rowIndex) => (
-                        <tr key={rowIndex}>
+                        <tr key={rowIndex} className="enrollment-row">
                             <td className={getBodyClass(0)}>{startColumn.profileLink ? startColumn.renderProfile(row['id']) : startColumn.value}</td>
                             {properties.map((prop, colIndex) => {
                                 const cellContent = row[prop];
