@@ -10,6 +10,23 @@ function ManageInvoices() {
     const [serverError, setServerError] = useState(null);
     const [activeTab, setActiveTab] = useState('data');
 
+    const formatCurrency = (value) => new Intl.NumberFormat('pt-BR', { style: "currency", currency: "BRL" }).format(value ?? 0);
+
+    const parseCurrencyValue = (value) => {
+        if (value === null || value === undefined) return 0;
+        if (typeof value === 'number') return value;
+        const normalized = value.toString().replace(/[^\d,-]/g, '').replace(',', '.');
+        const parsed = Number(normalized);
+        return Number.isNaN(parsed) ? 0 : parsed;
+    };
+
+    const parseBrDate = (dateString) => {
+        if (!dateString) return null;
+        const [day, month, year] = dateString.split('/').map(Number);
+        if (!day || !month || !year) return null;
+        return new Date(year, month - 1, day);
+    };
+
     useEffect(() => {
         async function loadInvoices() {
             try {
@@ -25,6 +42,28 @@ function ManageInvoices() {
 
     const invoiceMap = useMemo(() => {
         return new Map((invoices ?? []).map(invoice => [invoice.id, invoice]));
+    }, [invoices]);
+
+    const invoiceOverview = useMemo(() => {
+        const now = new Date();
+        const summary = {
+            PAGA: { count: 0, total: 0 },
+            ABERTA: { count: 0, total: 0 },
+            VENCIDA: { count: 0, total: 0 },
+        };
+
+        (invoices ?? []).forEach((invoice) => {
+            const issueDate = parseBrDate(invoice.issueDate);
+            if (!issueDate) return;
+            if (issueDate.getMonth() !== now.getMonth() || issueDate.getFullYear() !== now.getFullYear()) return;
+
+            const bucket = summary[invoice.status];
+            if (!bucket) return;
+            bucket.count += 1;
+            bucket.total += parseCurrencyValue(invoice.value);
+        });
+
+        return summary;
     }, [invoices]);
 
     const handleStatusChange = async (invoiceId, nextStatus) => {
@@ -169,6 +208,25 @@ function ManageInvoices() {
                         <h3 className="text-center my-auto">Sem faturas cadastradas</h3>
                     )}
                 </>
+            )}
+            {activeTab === 'overview' && (
+                <div className="row m-0 p-3 g-3">
+                    {["PAGA", "ABERTA", "VENCIDA"].map((status) => {
+                        const color = statusColors[status] || "secondary";
+                        const summary = invoiceOverview[status];
+                        return (
+                            <div className="col-12 col-sm-6 col-md" key={status}>
+                                <div className="card summary-card">
+                                    <div className="card-body">
+                                        <h5 className="card-title summary-card__title text-center">{status}</h5>
+                                        <h1 className={`summary-card__value text-center text-${color} my-4`}>{summary.count}</h1>
+                                        <p className="text-center fs-4 text-muted mb-0 fw-semibold">{formatCurrency(summary.total)}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
             )}
         </div>
     ) : (

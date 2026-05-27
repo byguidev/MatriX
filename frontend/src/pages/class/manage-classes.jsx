@@ -5,7 +5,7 @@ import api from "../../services/api";
 import renderProfileLink from "../../components/.common/render-profile-link";
 import deleteActionCell from "../../components/.common/delete-cell";
 import DeleteModal from "../../components/.common/delete-modal";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 function ManageClasses() {
     const [classes, setClasses] = useState(null);
@@ -20,6 +20,17 @@ function ManageClasses() {
         }
         loadClasses();
     }, []);
+
+    const classesOverview = useMemo(() => {
+        const totals = { total: classes?.length ?? 0, abertas: 0, planejadas: 0, concluidas: 0, completas: 0 };
+        (classes ?? []).forEach((classGroup) => {
+            if (classGroup.status === "ABERTA") totals.abertas += 1;
+            if (classGroup.status === "PLANEJADA") totals.planejadas += 1;
+            if (classGroup.status === "CONCLUIDA") totals.concluidas += 1;
+            if (classGroup.status === "COMPLETA") totals.completas += 1;
+        });
+        return totals;
+    }, [classes]);
 
     const tableHeaders = [<i className="bi bi-gear"></i>, "NOME", "CURSO", "ANO", "ALUNOS", 'VAGAS', 'SITUAÇÃO', ''];
 
@@ -79,6 +90,52 @@ function ManageClasses() {
                     ) : (
                         <h3 className="text-center my-auto">Sem turmas cadastradas</h3>
                     )
+                )
+            }
+            {
+                activeTab === 'overview' && (
+                    <div className="row m-0 p-3 g-3">
+                        <div className="col-12 col-sm-6 col-md">
+                            <div className="card summary-card">
+                                <div className="card-body">
+                                    <h5 className="card-title summary-card__title text-center">Total de Turmas</h5>
+                                    <h1 className="summary-card__value text-center text-primary">{classesOverview.total}</h1>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-12 col-sm-6 col-md">
+                            <div className="card summary-card">
+                                <div className="card-body">
+                                    <h5 className="card-title summary-card__title text-center">Turmas Abertas</h5>
+                                    <h1 className="summary-card__value text-center text-success">{classesOverview.abertas}</h1>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-12 col-sm-6 col-md">
+                            <div className="card summary-card">
+                                <div className="card-body">
+                                    <h5 className="card-title summary-card__title text-center">Turmas Planejadas</h5>
+                                    <h1 className="summary-card__value text-center text-warning">{classesOverview.planejadas}</h1>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-12 col-sm-6 col-md">
+                            <div className="card summary-card">
+                                <div className="card-body">
+                                    <h5 className="card-title summary-card__title text-center">Turmas Completas</h5>
+                                    <h1 className="summary-card__value text-center text-danger">{classesOverview.completas}</h1>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-12 col-sm-6 col-md">
+                            <div className="card summary-card">
+                                <div className="card-body">
+                                    <h5 className="card-title summary-card__title text-center">Turmas Concluídas</h5>
+                                    <h1 className="summary-card__value text-center text-secondary">{classesOverview.concluidas}</h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 )
             }
             <DeleteModal route={selectedDeleteRoute}/>

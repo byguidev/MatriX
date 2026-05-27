@@ -5,7 +5,7 @@ import api from "../../services/api";
 import renderProfileLink from "../../components/.common/render-profile-link";
 import deleteActionCell from "../../components/.common/delete-cell";
 import DeleteModal from "../../components/.common/delete-modal";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 function ManageCourses() {
     const [courses, setCourses] = useState(null);
@@ -20,6 +20,29 @@ function ManageCourses() {
         }
         loadCourses();
     }, []);
+
+    const billingLabels = {
+        "DIÁRIA": "Cobrança diária",
+        "SEMANAL": "Cobrança semanal",
+        "MENSAL": "Cobrança mensal",
+        "ANUAL": "Cobrança anual",
+    };
+
+    const billingColors = {
+        "DIÁRIA": "secondary",
+        "SEMANAL": "warning",
+        "MENSAL": "success",
+        "ANUAL": "info",
+    };
+
+    const coursesOverview = useMemo(() => {
+        const cycleCounts = {};
+        (courses ?? []).forEach((course) => {
+            const cycle = course.billingCycle ?? "N/D";
+            cycleCounts[cycle] = (cycleCounts[cycle] || 0) + 1;
+        });
+        return { total: courses?.length ?? 0, cycleCounts };
+    }, [courses]);
 
     const tableHeaders = [<i className="bi bi-gear"></i>, "NOME", "CÓDIGO", "VALOR", "COBRANÇA", ''];
 
@@ -71,6 +94,40 @@ function ManageCourses() {
                     ) : (
                         <h3 className="text-center my-auto">Sem cursos cadastrados</h3>
                     )
+                )
+            }
+            {
+                activeTab === 'overview' && (
+                    <div className="row m-0 p-3 g-3">
+                        <div className="col-12 col-sm-6 col-md">
+                            <div className="card summary-card">
+                                <div className="card-body">
+                                    <h5 className="card-title summary-card__title text-center">Total de Cursos</h5>
+                                    <h1 className="summary-card__value text-center text-primary">{coursesOverview.total}</h1>
+                                </div>
+                            </div>
+                        </div>
+                        {["DIÁRIA", "SEMANAL", "MENSAL", "ANUAL"].filter((cycle) => coursesOverview.cycleCounts[cycle]).map((cycle) => (
+                            <div className="col-12 col-sm-6 col-md" key={cycle}>
+                                <div className="card summary-card">
+                                    <div className="card-body">
+                                        <h5 className="card-title summary-card__title text-center">{billingLabels[cycle] ?? cycle}</h5>
+                                        <h1 className={`summary-card__value text-center text-${billingColors[cycle] || "secondary"}`}>{coursesOverview.cycleCounts[cycle]}</h1>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        {Object.keys(coursesOverview.cycleCounts).filter((cycle) => !["DIÁRIA", "SEMANAL", "MENSAL", "ANUAL"].includes(cycle)).map((cycle) => (
+                            <div className="col-12 col-sm-6 col-md" key={cycle}>
+                                <div className="card summary-card">
+                                    <div className="card-body">
+                                        <h5 className="card-title summary-card__title text-center">{billingLabels[cycle] ?? `Cobrança ${cycle.toLowerCase()}`}</h5>
+                                        <h1 className="summary-card__value text-center text-secondary">{coursesOverview.cycleCounts[cycle]}</h1>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 )
             }
             <DeleteModal route={selectedDeleteRoute}/>
