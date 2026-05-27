@@ -25,7 +25,7 @@ function ManageStudents() {
 
                     return {
                         ...rest,
-                        status: <span className={`badge text-bg-${statusColor}`}>{statusLabel}</span>
+                        status: <span className={`fw-bold text-${statusColor}`}>{statusLabel}</span>
                     };
                 })
             );

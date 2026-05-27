@@ -37,14 +37,35 @@ async function getClassProfile(id) {
                         name: true,
                     },
                 },
+                enrollments: {
+                    orderBy: {
+                        student: {
+                            fullName: 'asc',
+                        },
+                    },
+                    include: {
+                        student: {
+                            select: {
+                                fullName: true,
+                            },
+                        },
+                    },
+                },
             },
         });
 
         if (!_class_) throw new AppError('Class group not found', 404);
 
+        const { course, enrollments, ...classGroup } = _class_;
+        const formattedEnrollments = (enrollments ?? []).map(({ student, ...enrollment }) => ({
+            ...enrollment,
+            studentName: student?.fullName ?? null,
+        }));
+
         const formattedClass = {
-            ..._class_,
-            courseName: _class_.course?.name ?? null,
+            ...classGroup,
+            courseName: course?.name ?? null,
+            enrollments: formattedEnrollments,
         };
 
         return formattedClass;
@@ -183,7 +204,7 @@ async function deleteClass(id) {
             });
 
             await tx.enrollment.deleteMany({
-                where: { classGroupId: classId }
+                where: { classGroupId: classId },
             });
 
             for (const en of enrollments) {

@@ -16,7 +16,12 @@ async function listCourses() {
 // retorna curso individual ja com valor monetario formatado
 async function getCourse(id) {
     const course = await prisma.course.findUnique({
-        where: { id: Number(id) }
+        where: { id: Number(id) },
+        include: {
+            classGroups: {
+                orderBy: { name: 'asc' },
+            },
+        },
     });
 
     if (!course) throw new AppError('Course not found', 404);

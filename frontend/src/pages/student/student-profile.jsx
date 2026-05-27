@@ -168,9 +168,17 @@ function StudentProfile() {
                                             <tbody>
                                                 {activeEnrollments.map(e => (
                                                     <tr key={e.name} className='enrollment-row'>
-                                                        <td className='enrollment-cell enrollment-cell--course'>{e.courseName}</td>
+                                                        <td className='enrollment-cell enrollment-cell--course'>
+                                                            <Link to={`/manage-courses/${e.courseId}`} className="text-decoration-none" style={{ color: 'inherit' }}>
+                                                                {e.courseName}
+                                                            </Link>
+                                                        </td>
                                                         <td className='enrollment-cell font-monospace'>{e.name}</td>
-                                                        <td className='enrollment-cell font-monospace'>{e.classGroupName}</td>
+                                                        <td className='enrollment-cell font-monospace'>
+                                                            <Link to={`/manage-classes/${e.classGroupId}`} className="text-decoration-none" style={{ color: 'inherit' }}>
+                                                                {e.classGroupName}
+                                                            </Link>
+                                                        </td>
                                                         <td className='enrollment-cell enrollment-cell--status'>
                                                             <span className={"fw-bold text-"+badgeColors[`${e.status.toLowerCase()}`]}>
                                                                 {e.status}
@@ -233,9 +241,17 @@ function StudentProfile() {
                                             <tbody>
                                                 {canceledEnrollments.map(e => (
                                                     <tr key={e.name} className='enrollment-row'>
-                                                        <td className='enrollment-cell enrollment-cell--course'>{e.courseName}</td>
+                                                        <td className='enrollment-cell enrollment-cell--course'>
+                                                            <Link to={`/manage-courses/${e.courseId}`} className="text-decoration-none" style={{ color: 'inherit' }}>
+                                                                {e.courseName}
+                                                            </Link>
+                                                        </td>
                                                         <td className='enrollment-cell font-monospace'>{e.name}</td>
-                                                        <td className='enrollment-cell font-monospace'>{e.classGroupName}</td>
+                                                        <td className='enrollment-cell font-monospace'>
+                                                            <Link to={`/manage-classes/${e.classGroupId}`} className="text-decoration-none" style={{ color: 'inherit' }}>
+                                                                {e.classGroupName}
+                                                            </Link>
+                                                        </td>
                                                         <td className='enrollment-cell enrollment-cell--status'>
                                                             <span className={"fw-bold text-"+badgeColors[`${e.status.toLowerCase()}`]}>
                                                                 {e.status}
