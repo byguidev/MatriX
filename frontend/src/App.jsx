@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ManageStudents from "./pages/student/manage-students";
 import ManageCourses from "./pages/course/manage-courses";
 import ManageClasses from "./pages/class/manage-classes";
+import ManageInvoices from "./pages/invoice/manage-invoices";
 import StudentProfile from "./pages/student/student-profile";
 import CourseProfile from "./pages/course/course-profile";
 import ClassProfile from "./pages/class/class-profile";
@@ -25,6 +26,7 @@ function App() {
             <Route path="/manage-courses/:id" element={<CourseProfile />} />
             <Route path="/manage-classes" element={<ManageClasses />} />
             <Route path="/manage-classes/:id" element={<ClassProfile />} />
+            <Route path="/manage-invoices" element={<ManageInvoices />} />
           </Routes>
         </div>
       </BrowserRouter>

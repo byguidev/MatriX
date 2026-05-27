@@ -149,6 +149,9 @@ async function deleteStudent(id) {
           }
         });
       }
+      await tx.fatura.deleteMany({
+        where: { studentId: Number(id) }
+      });
       await tx.enrollment.deleteMany({
         where: { studentId: Number(id) }
       });

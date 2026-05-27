@@ -25,6 +25,7 @@ model Student {
   enrollmentCount  Int          @default(0) @map("quantidadeMatriculas")
 
   enrollments      Enrollment[] @relation("StudentEnrollments")
+  faturas          Fatura[]     @relation("StudentInvoices")
 
   @@map("Aluno")
 }
@@ -71,6 +72,23 @@ model Enrollment {
   student      Student    @relation("StudentEnrollments", fields: [studentId], references: [id])
   course       Course     @relation("CourseEnrollments", fields: [courseId], references: [id])
   classGroup   ClassGroup @relation("ClassGroupEnrollments", fields: [classGroupId], references: [id])
+  faturas      Fatura[]   @relation("EnrollmentInvoices")
 
   @@map("Matricula")
+}
+
+model Fatura {
+  id           Int        @id @default(autoincrement())
+  studentId    Int        @map("alunoId")
+  enrollmentId Int        @map("matriculaId")
+  value        Decimal    @db.Decimal(10, 2) @map("valor")
+  issueDate    DateTime   @default(now()) @map("dataEmissao")
+  dueDate      DateTime   @map("dataVencimento")
+  currency     String     @map("cobranca")
+  status       String
+
+  student      Student    @relation("StudentInvoices", fields: [studentId], references: [id])
+  enrollment   Enrollment @relation("EnrollmentInvoices", fields: [enrollmentId], references: [id])
+
+  @@map("Fatura")
 }

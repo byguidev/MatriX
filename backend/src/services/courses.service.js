@@ -99,6 +99,14 @@ async function updateCourse(body, id) {
 async function deleteCourse(id) {
     try {
         await prisma.$transaction(async (tx) => {
+            await tx.fatura.deleteMany({
+                where: {
+                    enrollment: {
+                        courseId: Number(id),
+                    },
+                },
+            });
+
             const classGroups = await tx.classGroup.findMany({
                 where: { courseId: Number(id) },
                 select: {

@@ -203,6 +203,14 @@ async function deleteClass(id) {
                 where: { classGroupId: classId }
             });
 
+            await tx.fatura.deleteMany({
+                where: {
+                    enrollment: {
+                        classGroupId: classId,
+                    },
+                },
+            });
+
             await tx.enrollment.deleteMany({
                 where: { classGroupId: classId },
             });

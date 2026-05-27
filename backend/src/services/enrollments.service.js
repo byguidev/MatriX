@@ -1,6 +1,7 @@
 const prisma = require('../config/db');
 const AppError = require('../errors/AppError');
 const handleDbError = require('../errors/handleDbError');
+const { addDays } = require('../utils/invoice-helpers');
 
 // cria matricula do aluno e sincroniza contadores de aluno e turma
 async function createEnrollment(studentId, courseId, classGroupId, tx = null) {
@@ -20,6 +21,13 @@ async function createEnrollment(studentId, courseId, classGroupId, tx = null) {
 
     if (hasEnrollment) throw new AppError("Student is already enrolled in this course", 409);
 
+    const course = await db.course.findUnique({
+      where: { id: Number(courseId) },
+      select: { price: true, billingCycle: true }
+    });
+
+    if (!course) throw new AppError("Course not found", 404);
+
     const updatedClassGroup = await db.classGroup.update({
       where: { id: Number(classGroupId) },
       data: {
@@ -34,14 +42,15 @@ async function createEnrollment(studentId, courseId, classGroupId, tx = null) {
     // gera nome sequencial da matricula com contador monotônico por turma
     const enrollmentName = `${classGroup.name}.${String(updatedClassGroup.nextEnrollmentNumber).padStart(3, '0')}`;
 
-    await db.enrollment.create({
+    const createdEnrollment = await db.enrollment.create({
       data: {
         studentId: Number(studentId),
         courseId: Number(courseId),
         classGroupId: Number(classGroupId),
         name: enrollmentName,
         status: "ATIVA"
-      }
+      },
+      select: { id: true }
     });
 
     await db.student.update({
@@ -50,81 +59,111 @@ async function createEnrollment(studentId, courseId, classGroupId, tx = null) {
         enrollmentCount: { increment: 1 }
       }
     });
+
+    const issueDate = new Date();
+    const dueDate = addDays(issueDate, 30);
+
+    await db.fatura.create({
+      data: {
+        studentId: Number(studentId),
+        enrollmentId: createdEnrollment.id,
+        value: course.price,
+        issueDate,
+        dueDate,
+        currency: course.billingCycle,
+        status: "ABERTA"
+      }
+    });
   }
 
   if (tx) return run(tx);
   return run(prisma);
 }
 
-async function changeEnrollmentStatus(enrollmentId, status) {
+async function changeEnrollmentStatus(enrollmentId, status, options = {}) {
   try {
-    const enrollment = await prisma.enrollment.findUnique({
+    const allowCanceled = options.allowCanceled === true;
+    const tx = options.tx ?? null;
+    const db = tx ?? prisma;
+
+    const enrollment = await db.enrollment.findUnique({
       where: { id: Number(enrollmentId) },
       select: { status: true, classGroupId: true, studentId: true }
     });
 
     if (!enrollment) throw new AppError("Enrollment not found", 404);
 
-    if (enrollment.status === "CANCELADA" && status !== "CANCELADA") {
+    if (!allowCanceled && enrollment.status === "CANCELADA" && status !== "CANCELADA") {
       throw new AppError("Canceled enrollment cannot change status", 409);
     }
 
     if (enrollment.status === status) return;
 
-    return prisma.$transaction(async (tx) => {
-      if (status !== "ATIVA") {
-        await tx.classGroup.update({
-          where: {id: Number(enrollment.classGroupId)},
+    const run = async (db) => {
+      const isLeavingActive = enrollment.status === "ATIVA" && status !== "ATIVA";
+      const isReturningActive = enrollment.status !== "ATIVA" && status === "ATIVA";
+
+      if (isLeavingActive) {
+        await db.classGroup.update({
+          where: { id: Number(enrollment.classGroupId) },
           data: {
             studentCount: { decrement: 1 },
             availableSeats: { increment: 1 },
           }
-        })
-      } else {
-        const classGroup = await tx.classGroup.findUnique({ 
+        });
+      }
+
+      if (isReturningActive) {
+        const classGroup = await db.classGroup.findUnique({
           where: { id: enrollment.classGroupId },
           select: { availableSeats: true }
         });
-        
-        console.log(classGroup.availableSeats);
+
         if (classGroup.availableSeats === 0) throw new AppError("Maximum number of available seats reached", 400);
 
-        await tx.classGroup.update({
-          where: {id: Number(enrollment.classGroupId)},
+        await db.classGroup.update({
+          where: { id: Number(enrollment.classGroupId) },
           data: {
             studentCount: { increment: 1 },
             availableSeats: { decrement: 1 },
           }
-        })
+        });
       }
 
-      const classGroup = await tx.classGroup.findUnique({
+      const classGroup = await db.classGroup.findUnique({
         where: { id: Number(enrollment.classGroupId) },
         select: { availableSeats: true },
       });
 
-      await tx.classGroup.update({
+      await db.classGroup.update({
         where: { id: Number(enrollment.classGroupId) },
         data: { status: classGroup.availableSeats <= 0 ? "COMPLETA" : "ABERTA" },
-      })
-      
-      await tx.enrollment.update({
+      });
+
+      await db.enrollment.update({
         where: { id: Number(enrollmentId) },
         data: { status }
       });
 
-      const student = await tx.student.findUnique({ 
-        where: { id: enrollment.studentId },
-        select: { id: true, enrollmentCount: true }
-      });
+      if (enrollment.status !== "CANCELADA" && status === "CANCELADA") {
+        await db.student.update({
+          where: { id: enrollment.studentId },
+          data: {
+            enrollmentCount: { decrement: 1 },
+          }
+        });
+      } else if (enrollment.status === "CANCELADA" && status !== "CANCELADA") {
+        await db.student.update({
+          where: { id: enrollment.studentId },
+          data: {
+            enrollmentCount: { increment: 1 },
+          }
+        });
+      }
+    };
 
-      await tx.student.update({
-        where: { id: student.id },
-        data: {
-          enrollmentCount: status === "CANCELADA" ? {decrement: 1} : student.enrollmentCount,
-        }
-      })
-    })
+    if (tx) return run(tx);
+    return prisma.$transaction(run);
   } catch (err) {
     if (err instanceof AppError) throw err;
     handleDbError(err);

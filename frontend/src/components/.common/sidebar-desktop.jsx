@@ -297,6 +297,17 @@ const COLLAPSE_IDS = ["collapse-students", "collapse-courses"]
                             </li>
                         </ul>
                     </li>
+                    
+                    {/* link direto para gestao financeira */}
+                    <li className={expandedNavItemClass}>
+                        <Link to="/manage-invoices" className={getGroupClass(["/manage-invoices"])}>
+                            <i className={isVisuallyExpanded
+                                ? "bi bi-cash-coin me-2"
+                                : "bi bi-cash-coin"
+                            }></i>
+                            <span className={iconVisibility}>Finanças</span>
+                        </Link>
+                    </li>
 
                     {/* configuracoes fica no rodape para manter acesso rapido */}
                     <li className={`${expandedNavItemClass} mt-auto border-top`}>
