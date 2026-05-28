@@ -14,6 +14,7 @@ function ManageStudents() {
     const [students, setStudents] = useState(null);
     const [selectedDeleteRoute, setSelectedDeleteRoute] = useState(null);
     const [activeTab, setActiveTab] = useState('overview');
+    const [searchQuery, setSearchQuery] = useState('');
     const [studentsNumbers, setStudentsNumbers] = useState({total: 0, enrolled: 0, pendingEnrollment: 0, lockedEnrollments: 0});
 
     const parseBrDate = (dateString) => {
@@ -74,6 +75,27 @@ function ManageStudents() {
             }],
         };
     }, [students]);
+
+    const filteredStudents = useMemo(() => {
+        const query = searchQuery.trim().toLowerCase();
+        if (!query) return students;
+
+        return students.filter((student) => {
+            const searchableValues = [
+                student.name,
+                student.cpf,
+                student.birthDate,
+                student.email,
+                student.phone,
+                student.statusLabel,
+                student.enrollmentDate,
+            ];
+
+            return searchableValues.some((value) =>
+                value !== null && value !== undefined && value.toString().toLowerCase().includes(query)
+            );
+        });
+    }, [searchQuery, students]);
 
     const enrollmentTrendData = useMemo(() => {
         const monthFormatter = new Intl.DateTimeFormat('pt-BR', { month: 'short' });
@@ -182,6 +204,8 @@ function ManageStudents() {
                 ModalComponent={() => <StudentFormModal title={'Cadastrar aluno'} />}
                 modalId={"#student-form-modal"}
                 showSearch={activeTab === 'data'}
+                searchValue={searchQuery}
+                onSearchChange={setSearchQuery}
             />
             <div className="px-3 px-md-4 pt-4">
                 <div className="profile-tabs mb-4 overflow-hidden">
@@ -201,10 +225,10 @@ function ManageStudents() {
             </div>
             {
                 activeTab === 'data' && (
-                    students.length ? (
+                    filteredStudents.length ? (
                         <DataTable 
                         headerContent={tableHeaders} 
-                        bodyContent={students} 
+                        bodyContent={filteredStudents} 
                         headerColumnClasses={{ 1: "width-1", 7: "width-1" }} 
                         bodyColumnClasses={{ 1: 'text-center p-0', 2: "text-start", 3: "font-monospace", 4: "font-monospace", 6: "font-monospace", 5: "text-start", 8: "text-center p-0 width-1" }} 
                         ignoredProperties={['id', 'enrollmentDate', 'enrollmentCount', 'statusLabel']} 
@@ -220,7 +244,7 @@ function ManageStudents() {
                                 deleteActionCell('/api/manage-students/', itemId, setSelectedDeleteRoute)
                         }}/>
                     ) : (
-                        <h3 className="text-center my-auto">Sem alunos cadastrados</h3>
+                        <h3 className="text-center my-auto">{searchQuery ? 'Nenhum aluno encontrado' : 'Sem alunos cadastrados'}</h3>
                     )
                 )
             }

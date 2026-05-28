@@ -12,6 +12,7 @@ function ManageClasses() {
     const [classes, setClasses] = useState(null);
     const [selectedDeleteRoute, setSelectedDeleteRoute] = useState(null);
     const [activeTab, setActiveTab] = useState('overview');
+    const [searchQuery, setSearchQuery] = useState('');
 
     // carrega turmas com dados agregados de curso para a tabela
     useEffect(() => {
@@ -92,6 +93,27 @@ function ManageClasses() {
         };
     }, [classes]);
 
+    const filteredClasses = useMemo(() => {
+        const query = searchQuery.trim().toLowerCase();
+        if (!query) return classes;
+
+        return classes.filter((classGroup) => {
+            const searchableValues = [
+                classGroup.name,
+                classGroup.courseName,
+                classGroup.year,
+                classGroup.studentCount,
+                classGroup.availableSeats,
+                classGroup.maxSeats,
+                classGroup.status,
+            ];
+
+            return searchableValues.some((value) =>
+                value !== null && value !== undefined && value.toString().toLowerCase().includes(query)
+            );
+        });
+    }, [classes, searchQuery]);
+
     const doughnutOptions = useMemo(() => ({
         responsive: true,
         maintainAspectRatio: false,
@@ -162,6 +184,8 @@ function ManageClasses() {
                 ModalComponent={() => <ClassFormModal title={'Cadastrar turma'} />}
                 modalId={'#class-form-modal'}
                 showSearch={activeTab === 'data'}
+                searchValue={searchQuery}
+                onSearchChange={setSearchQuery}
             />
             <div className="px-3 px-md-4 pt-4">
                 <div className="profile-tabs mb-4 overflow-hidden">
@@ -181,10 +205,10 @@ function ManageClasses() {
             </div>
             {
                 activeTab === 'data' && (
-                    classes.length ? (
+                    filteredClasses.length ? (
                         <DataTable 
                         headerContent={tableHeaders} 
-                        bodyContent={classes} 
+                        bodyContent={filteredClasses} 
                         headerColumnClasses={{ 1: "width-1", 6: "width-1" }} 
                         bodyColumnClasses={{ 1: 'text-center p-0', 2: "font-monospace", 3: "text-start", 8: "text-center p-0 width-1" }} 
                         ignoredProperties={['id', 'maxSeats', 'number', 'courseId', 'nextEnrollmentNumber']} 
@@ -208,7 +232,7 @@ function ManageClasses() {
                                 deleteActionCell('/api/manage-classes/', itemId, setSelectedDeleteRoute)
                         }}/>
                     ) : (
-                        <h3 className="text-center my-auto">Sem turmas cadastradas</h3>
+                        <h3 className="text-center my-auto">{searchQuery ? 'Nenhuma turma encontrada' : 'Sem turmas cadastradas'}</h3>
                     )
                 )
             }

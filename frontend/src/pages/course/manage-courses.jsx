@@ -26,6 +26,7 @@ function ManageCourses() {
     const [courses, setCourses] = useState(null);
     const [selectedDeleteRoute, setSelectedDeleteRoute] = useState(null);
     const [activeTab, setActiveTab] = useState('overview');
+    const [searchQuery, setSearchQuery] = useState('');
 
     // busca cursos na api para popular a listagem principal
     useEffect(() => {
@@ -74,6 +75,18 @@ function ManageCourses() {
             }],
         };
     }, [coursesOverview.cycleCounts]);
+
+    const filteredCourses = useMemo(() => {
+        const query = searchQuery.trim().toLowerCase();
+        if (!query) return courses;
+
+        return courses.filter((course) => {
+            const searchableValues = [course.name, course.code, course.price, course.billingCycle];
+            return searchableValues.some((value) =>
+                value !== null && value !== undefined && value.toString().toLowerCase().includes(query)
+            );
+        });
+    }, [courses, searchQuery]);
 
     const priceRankingChartData = useMemo(() => {
         const topCourses = [...(courses ?? [])]
@@ -167,6 +180,8 @@ function ManageCourses() {
                 ModalComponent={() => <CourseFormModal title={'Cadastrar curso'} />}
                 modalId={"#course-form-modal"}
                 showSearch={activeTab === 'data'}
+                searchValue={searchQuery}
+                onSearchChange={setSearchQuery}
             />
             <div className="px-3 px-md-4 pt-4">
                 <div className="profile-tabs mb-4 overflow-hidden">
@@ -185,10 +200,10 @@ function ManageCourses() {
                 </div>
             </div>
             {activeTab === 'data' && (
-                courses.length ? (
+                filteredCourses.length ? (
                     <DataTable 
                         headerContent={tableHeaders} 
-                        bodyContent={courses} 
+                        bodyContent={filteredCourses} 
                         headerColumnClasses={{ 1: "width-1", 6: "width-1" }} 
                         bodyColumnClasses={{ 1: 'text-center p-0', 2: "text-start", 3: "font-monospace", 6: "text-center p-0" }} 
                         ignoredProperties={['id']} 
@@ -204,7 +219,7 @@ function ManageCourses() {
                                 deleteActionCell('/api/manage-courses/', itemId, setSelectedDeleteRoute)
                         }}/>
                 ) : (
-                    <h3 className="text-center my-auto">Sem cursos cadastrados</h3>
+                    <h3 className="text-center my-auto">{searchQuery ? 'Nenhum curso encontrado' : 'Sem cursos cadastrados'}</h3>
                 )
             )}
             {activeTab === 'overview' && (

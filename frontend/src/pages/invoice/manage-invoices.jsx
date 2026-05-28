@@ -10,6 +10,7 @@ function ManageInvoices() {
     const [invoices, setInvoices] = useState(null);
     const [serverError, setServerError] = useState(null);
     const [activeTab, setActiveTab] = useState('overview');
+    const [searchQuery, setSearchQuery] = useState('');
 
     const formatCurrency = (value) => new Intl.NumberFormat('pt-BR', { style: "currency", currency: "BRL" }).format(value ?? 0);
 
@@ -155,6 +156,29 @@ function ManageInvoices() {
         };
     }, [invoices]);
 
+    const filteredInvoices = useMemo(() => {
+        const query = searchQuery.trim().toLowerCase();
+        if (!query) return invoices;
+
+        return invoices.filter((invoice) => {
+            const searchableValues = [
+                invoice.studentName,
+                invoice.courseName,
+                invoice.classGroupName,
+                invoice.enrollmentName,
+                invoice.issueDate,
+                invoice.dueDate,
+                invoice.value,
+                invoice.currency,
+                invoice.status,
+            ];
+
+            return searchableValues.some((value) =>
+                value !== null && value !== undefined && value.toString().toLowerCase().includes(query)
+            );
+        });
+    }, [invoices, searchQuery]);
+
     const doughnutOptions = useMemo(() => ({
         responsive: true,
         maintainAspectRatio: false,
@@ -278,7 +302,7 @@ function ManageInvoices() {
         <i className="bi bi-gear"></i>
     ];
 
-    const tableRows = (invoices ?? []).map((invoice) => {
+    const tableRows = (filteredInvoices ?? []).map((invoice) => {
         const statusColor = statusColors[invoice.status] || "secondary";
         return {
             id: invoice.id,
@@ -344,7 +368,12 @@ function ManageInvoices() {
 
     return invoices ? (
         <div className="d-flex flex-column h-100 bg-light">
-            <AppHeader title="GERENCIAR FATURAS" showSearch={activeTab === 'data'} />
+            <AppHeader
+                title="GERENCIAR FATURAS"
+                showSearch={activeTab === 'data'}
+                searchValue={searchQuery}
+                onSearchChange={setSearchQuery}
+            />
             <div className="px-3 px-md-4 pt-4">
                 <div className="profile-tabs mb-4 overflow-hidden">
                     <button
@@ -368,7 +397,7 @@ function ManageInvoices() {
                             {serverError}
                         </div>
                     )}
-                    {invoices.length ? (
+                    {filteredInvoices.length ? (
                         <DataTable
                             headerContent={tableHeaders}
                             bodyContent={tableRows}
@@ -403,7 +432,7 @@ function ManageInvoices() {
                             }}
                         />
                     ) : (
-                        <h3 className="text-center my-auto">Sem faturas cadastradas</h3>
+                        <h3 className="text-center my-auto">{searchQuery ? 'Nenhuma fatura encontrada' : 'Sem faturas cadastradas'}</h3>
                     )}
                 </>
             )}

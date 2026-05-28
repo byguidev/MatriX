@@ -235,8 +235,8 @@ const COLLAPSE_IDS = ["collapse-students", "collapse-courses"]
                     <li className={expandedNavItemClass}>
                         <Link to="/home" className={getGroupClass(["/home"])}>
                             <i className={isVisuallyExpanded
-                                ? "bi bi-bar-chart-line-fill me-2"
-                                : "bi bi-bar-chart-line-fill"
+                                ? "bi bi-house-fill me-2"
+                                : "bi bi-house-fill"
                             }></i>
                             <span className={iconVisibility}>Página Inicial</span>
                         </Link>

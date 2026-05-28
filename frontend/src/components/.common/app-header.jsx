@@ -1,4 +1,12 @@
-function AppHeader({ title, ModalComponent, modalId, showSearch = true }) {
+function AppHeader({
+    title,
+    ModalComponent,
+    modalId,
+    showSearch = true,
+    searchValue = "",
+    searchPlaceholder = "Buscar",
+    onSearchChange,
+}) {
     
     return (
         // padrao de cabecalho compartilhado entre as telas de gerenciamento
@@ -10,11 +18,24 @@ function AppHeader({ title, ModalComponent, modalId, showSearch = true }) {
                         <h1 className="app-header__title">{title}</h1>
                     </div>
                     {(showSearch || ModalComponent) && (
-                        <form action="#" method="#" className="d-flex col-12 col-md-8 gap-1 gap-md-3 mt-3 mt-md-0">
+                        <form
+                            action="#"
+                            method="#"
+                            className="d-flex col-12 col-md-8 gap-1 gap-md-3 mt-3 mt-md-0"
+                            onSubmit={(event) => event.preventDefault()}
+                        >
                             {showSearch && (
                                 <div className="input-group align-items-start">
                                     <span className="input-group-text"><i className="bi bi-search"></i></span>
-                                    <input type="search" placeholder="Buscar" name="#" id="#" className="form-control"/>
+                                    <input
+                                        type="search"
+                                        placeholder={searchPlaceholder}
+                                        name="search"
+                                        id="search"
+                                        className="form-control"
+                                        value={searchValue}
+                                        onChange={(event) => onSearchChange?.(event.target.value)}
+                                    />
                                 </div>
                             )}
                             {/* o botao abre o modal de cadastro/edicao recebido por props */}
