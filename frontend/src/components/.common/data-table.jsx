@@ -11,6 +11,7 @@ function DataTable({
     endColumn = {},
     columnOrder = {},
 }) {
+    const hasStartColumn = Boolean(startColumn.profileLink || startColumn.renderProfile || startColumn.value !== undefined);
 
     // remove campos tecnicos que nao devem aparecer para o usuario
     const properties = bodyContent[0]
@@ -25,8 +26,8 @@ function DataTable({
             const targetOneBased = Number(key);
             if (Number.isNaN(targetOneBased)) continue;
 
-            // a primeira coluna e reservada para acoes, por isso o ajuste de indice
-            const propTargetIndex = targetOneBased - 2;
+            // quando existe coluna inicial, a ordenacao precisa compensar esse espaco
+            const propTargetIndex = targetOneBased - (hasStartColumn ? 2 : 1);
             const propName = columnOrder[key];
             const currentIndex = properties.indexOf(propName);
 
@@ -71,12 +72,14 @@ function DataTable({
                 <tbody>
                     {bodyContent.map((row, rowIndex) => (
                         <tr key={rowIndex} className="enrollment-row">
-                            <td className={getBodyClass(0)}>{startColumn.profileLink ? startColumn.renderProfile(row['id']) : startColumn.value}</td>
+                            {hasStartColumn && (
+                                <td className={getBodyClass(0)}>{startColumn.profileLink ? startColumn.renderProfile(row['id']) : startColumn.value}</td>
+                            )}
                             {properties.map((prop, colIndex) => {
                                 const cellContent = row[prop];
-                                return <td key={prop} className={(getBodyClass(colIndex + 1))}>{cellContent}</td>
+                                return <td key={prop} className={(getBodyClass(colIndex + (hasStartColumn ? 1 : 0)))}>{cellContent}</td>
                             })}
-                            <td className={getBodyClass(properties.length + 1)}>{endColumn.delete ? endColumn.deleteCell(row['id']) : endColumn.value}</td>
+                            <td className={getBodyClass(properties.length + (hasStartColumn ? 1 : 0))}>{endColumn.delete ? endColumn.deleteCell(row['id']) : endColumn.value}</td>
                         </tr>
                     ))}
                 </tbody>

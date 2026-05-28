@@ -83,7 +83,6 @@ function ManageInvoices() {
     );
 
     const tableHeaders = [
-        <i className="bi bi-gear"></i>,
         "ALUNO",
         "CURSO",
         "TURMA",
@@ -93,7 +92,7 @@ function ManageInvoices() {
         "VALOR",
         "COBRANÇA",
         "STATUS",
-        ""
+        <i className="bi bi-gear"></i>
     ];
 
     const tableRows = (invoices ?? []).map((invoice) => {
@@ -130,15 +129,36 @@ function ManageInvoices() {
         const statusColor = statusColors[invoice.status] || "secondary";
 
         return (
-            <select
-                className={`form-select form-select-sm fw-semibold text-${statusColor}`}
-                value={invoice.status}
-                onChange={(event) => handleStatusChange(invoiceId, event.target.value)}
-            >
-                <option value="ABERTA">ABERTA</option>
-                <option value="VENCIDA">VENCIDA</option>
-                <option value="PAGA">PAGA</option>
-            </select>
+            <div className="dropdown">
+                <button
+                    type="button"
+                    className="btn text-decoration-none p-0"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                    aria-label={`Alterar status da fatura ${invoiceId}`}
+                >
+                    <i className="bi bi-three-dots"></i>
+                </button>
+                <ul className={`dropdown-menu p-0 overflow-hidden`}>
+                    {[
+                        { label: "ABERTA", value: "ABERTA", color: "warning" },
+                        { label: "VENCIDA", value: "VENCIDA", color: "danger" },
+                        { label: "PAGA", value: "PAGA", color: "success" },
+                    ].map((option, index) => (
+                        <li key={option.value}>
+                            <button
+                                type="button"
+                                className={`dropdown-item btn fw-bold text-${option.color} rounded-0 py-2`}
+                                onClick={() => handleStatusChange(invoiceId, option.value)}
+                            >
+                                {option.label}
+                            </button>
+                            {index < 2 && <hr className="dropdown-divider m-0" />}
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
         );
     };
 
@@ -172,33 +192,31 @@ function ManageInvoices() {
                         <DataTable
                             headerContent={tableHeaders}
                             bodyContent={tableRows}
-                            headerColumnClasses={{ 1: "width-1", 11: "width-1" }}
+                            headerColumnClasses={{ 10: "width-1" }}
                             bodyColumnClasses={{
-                                1: "text-center p-0",
+                                1: "text-start",
                                 2: "text-start",
-                                3: "text-start",
-                                4: "text-start",
+                                3: "text-center",
+                                4: "text-center",
                                 5: "font-monospace",
                                 6: "font-monospace",
                                 7: "font-monospace",
                                 8: "font-monospace",
                                 9: "text-center",
-                                10: "text-center",
-                                11: "text-center p-0 width-1"
+                                10: "text-center p-0 width-1"
                             }}
                             ignoredProperties={['id']}
                             columnOrder={{
-                                2: "studentName",
-                                3: "courseName",
-                                4: "classGroupName",
-                                5: "enrollmentName",
-                                6: "issueDate",
-                                7: "dueDate",
-                                8: "value",
-                                9: "currency",
-                                10: "status",
+                                1: "studentName",
+                                2: "courseName",
+                                3: "classGroupName",
+                                4: "enrollmentName",
+                                5: "issueDate",
+                                6: "dueDate",
+                                7: "value",
+                                8: "currency",
+                                9: "status",
                             }}
-                            startColumn={{ value: "" }}
                             endColumn={{
                                 delete: true,
                                 deleteCell: (itemId) => renderStatusSelect(itemId)
