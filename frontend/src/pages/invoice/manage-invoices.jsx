@@ -1,5 +1,6 @@
 import DataTable from "../../components/.common/data-table";
 import AppHeader from "../../components/.common/app-header";
+import ChartCard from "../../components/.common/chart-card";
 import api from "../../services/api";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -66,6 +67,188 @@ function ManageInvoices() {
         return summary;
     }, [invoices]);
 
+    const statusChartData = useMemo(() => {
+        const labels = ["PAGA", "ABERTA", "VENCIDA"];
+        return {
+            labels,
+            datasets: [{
+                label: "Faturas",
+                data: labels.map((status) => (invoices ?? []).filter((invoice) => invoice.status === status).length),
+                backgroundColor: ["rgba(16, 185, 129, 0.92)", "rgba(245, 158, 11, 0.92)", "rgba(239, 68, 68, 0.92)"],
+                borderColor: ["#10b981", "#f59e0b", "#ef4444"],
+                borderWidth: 1,
+                hoverOffset: 8,
+            }],
+        };
+    }, [invoices]);
+
+    const monthlyChartData = useMemo(() => {
+        const monthFormatter = new Intl.DateTimeFormat('pt-BR', { month: 'short' });
+        const now = new Date();
+        const months = Array.from({ length: 6 }, (_, index) => new Date(now.getFullYear(), now.getMonth() - (5 - index), 1));
+        const buckets = new Map(
+            months.map((date) => {
+                const key = `${date.getFullYear()}-${date.getMonth()}`;
+                return [key, { label: monthFormatter.format(date).replace('.', '').toUpperCase(), count: 0, total: 0 }];
+            })
+        );
+
+        (invoices ?? []).forEach((invoice) => {
+            const issueDate = parseBrDate(invoice.issueDate);
+            if (!issueDate) return;
+
+            const key = `${issueDate.getFullYear()}-${issueDate.getMonth()}`;
+            const bucket = buckets.get(key);
+            if (!bucket) return;
+
+            bucket.count += 1;
+            bucket.total += parseCurrencyValue(invoice.value);
+        });
+
+        const monthlySummary = [...buckets.values()];
+
+        return {
+            labels: monthlySummary.map((item) => item.label),
+            datasets: [
+                {
+                    label: 'Faturas emitidas',
+                    data: monthlySummary.map((item) => item.count),
+                    borderColor: '#0f766e',
+                    backgroundColor: 'rgba(15, 118, 110, 0.12)',
+                    pointBackgroundColor: '#0f766e',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    tension: 0.35,
+                    fill: true,
+                },
+            ],
+        };
+    }, [invoices]);
+
+    const topCoursesChartData = useMemo(() => {
+        const courseMap = new Map();
+
+        (invoices ?? []).forEach((invoice) => {
+            const courseLabel = invoice.courseName || 'Sem curso';
+            const current = courseMap.get(courseLabel) ?? { label: courseLabel, count: 0, total: 0 };
+            current.count += 1;
+            current.total += parseCurrencyValue(invoice.value);
+            courseMap.set(courseLabel, current);
+        });
+
+        const topCourses = [...courseMap.values()]
+            .sort((left, right) => right.total - left.total)
+            .slice(0, 5)
+            .reverse();
+
+        return {
+            labels: topCourses.map((item) => item.label),
+            datasets: [{
+                label: 'Valor total',
+                data: topCourses.map((item) => item.total),
+                backgroundColor: 'rgba(37, 99, 235, 0.86)',
+                borderColor: '#2563eb',
+                borderWidth: 1,
+                borderRadius: 10,
+                barThickness: 16,
+            }],
+        };
+    }, [invoices]);
+
+    const doughnutOptions = useMemo(() => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '68%',
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    padding: 18,
+                    boxWidth: 10,
+                    boxHeight: 10,
+                },
+            },
+            tooltip: {
+                callbacks: {
+                    label: (context) => `${context.label}: ${context.raw} faturas`,
+                },
+            },
+        },
+    }), []);
+
+    const monthlyOptions = useMemo(() => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    precision: 0,
+                    color: '#64748b',
+                },
+                grid: {
+                    color: 'rgba(148, 163, 184, 0.18)',
+                },
+            },
+            x: {
+                ticks: {
+                    color: '#64748b',
+                },
+                grid: {
+                    display: false,
+                },
+            },
+        },
+        plugins: {
+            legend: {
+                display: false,
+            },
+            tooltip: {
+                callbacks: {
+                    label: (context) => `${context.raw} faturas emitidas`,
+                },
+            },
+        },
+    }), []);
+
+    const topCoursesOptions = useMemo(() => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        scales: {
+            x: {
+                beginAtZero: true,
+                ticks: {
+                    color: '#64748b',
+                    callback: (value) => `R$ ${Number(value).toLocaleString('pt-BR')}`,
+                },
+                grid: {
+                    color: 'rgba(148, 163, 184, 0.18)',
+                },
+            },
+            y: {
+                ticks: {
+                    color: '#64748b',
+                },
+                grid: {
+                    display: false,
+                },
+            },
+        },
+        plugins: {
+            legend: {
+                display: false,
+            },
+            tooltip: {
+                callbacks: {
+                    label: (context) => `Total: ${formatCurrency(context.raw)}`,
+                },
+            },
+        },
+    }), []);
+
     const handleStatusChange = async (invoiceId, nextStatus) => {
         try {
             const response = await api.patch(`/api/manage-invoices/${invoiceId}`, { status: nextStatus });
@@ -126,20 +309,18 @@ function ManageInvoices() {
         const invoice = invoiceMap.get(invoiceId);
         if (!invoice) return null;
 
-        const statusColor = statusColors[invoice.status] || "secondary";
-
         return (
             <div className="dropdown">
                 <button
                     type="button"
-                    className="btn text-decoration-none p-0"
+                    className="btn text-decoration-none p-0 text-muted"
                     data-bs-toggle="dropdown"
                     aria-expanded="false"
                     aria-label={`Alterar status da fatura ${invoiceId}`}
                 >
                     <i className="bi bi-three-dots"></i>
                 </button>
-                <ul className={`dropdown-menu p-0 overflow-hidden`}>
+                <ul className="dropdown-menu dropdown-menu-end p-0 overflow-hidden shadow-sm">
                     {[
                         { label: "ABERTA", value: "ABERTA", color: "warning" },
                         { label: "VENCIDA", value: "VENCIDA", color: "danger" },
@@ -158,7 +339,6 @@ function ManageInvoices() {
                     ))}
                 </ul>
             </div>
-
         );
     };
 
@@ -228,22 +408,63 @@ function ManageInvoices() {
                 </>
             )}
             {activeTab === 'overview' && (
-                <div className="row m-0 p-3 g-3">
-                    {["PAGA", "ABERTA", "VENCIDA"].map((status) => {
-                        const color = statusColors[status] || "secondary";
-                        const summary = invoiceOverview[status];
-                        return (
-                            <div className="col-12 col-sm-6 col-md" key={status}>
-                                <div className="card summary-card">
-                                    <div className="card-body">
-                                        <h5 className="card-title summary-card__title text-center">{status}</h5>
-                                        <h1 className={`summary-card__value text-center text-${color} my-4`}>{summary.count}</h1>
-                                        <p className="text-center fs-4 text-muted mb-0 fw-semibold">{formatCurrency(summary.total)}</p>
+                <div className="p-3 p-md-4 bg-light">
+                    <div className="row g-3 mb-3">
+                        {[
+                            { title: 'PAGA', color: 'success' },
+                            { title: 'ABERTA', color: 'warning' },
+                            { title: 'VENCIDA', color: 'danger' },
+                        ].map((item) => {
+                            const summary = invoiceOverview[item.title];
+                            return (
+                                <div className="col-12 col-sm-6 col-lg-4" key={item.title}>
+                                    <div className="card summary-card h-100 border-0 shadow-sm">
+                                        <div className="card-body p-4 text-center">
+                                            <h5 className="card-title summary-card__title mb-3">{item.title}</h5>
+                                            <h1 className={`summary-card__value text-center text-${item.color} my-3`}>{summary.count}</h1>
+                                            <p className="text-center fs-5 text-muted mb-0 fw-semibold">{formatCurrency(summary.total)}</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
+
+                    <div className="row g-3 mb-3">
+                        <div className="col-12 col-lg-4">
+                            <ChartCard
+                                title="Distribuição por status"
+                                subtitle="Quantidade de faturas em todo o histórico"
+                                type="doughnut"
+                                data={statusChartData}
+                                options={doughnutOptions}
+                                height={260}
+                            />
+                        </div>
+                        <div className="col-12 col-lg-8">
+                            <ChartCard
+                                title="Evolução de emissões"
+                                subtitle="Últimos 6 meses com base na data de emissão"
+                                type="line"
+                                data={monthlyChartData}
+                                options={monthlyOptions}
+                                height={260}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="row g-3">
+                        <div className="col-12">
+                            <ChartCard
+                                title="Cursos com maior faturamento"
+                                subtitle="Top 5 cursos por valor total faturado"
+                                type="bar"
+                                data={topCoursesChartData}
+                                options={topCoursesOptions}
+                                height={300}
+                            />
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

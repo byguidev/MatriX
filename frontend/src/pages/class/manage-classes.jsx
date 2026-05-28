@@ -1,6 +1,7 @@
 import DataTable from "../../components/.common/data-table";
 import ClassFormModal from "../../components/class/class-form-modal";
 import AppHeader from "../../components/.common/app-header";
+import ChartCard from "../../components/.common/chart-card";
 import api from "../../services/api";
 import renderProfileLink from "../../components/.common/render-profile-link";
 import deleteActionCell from "../../components/.common/delete-cell";
@@ -31,6 +32,125 @@ function ManageClasses() {
         });
         return totals;
     }, [classes]);
+
+    const classStatusChartData = useMemo(() => {
+        const entries = [
+            ["ABERTA", classesOverview.abertas],
+            ["PLANEJADA", classesOverview.planejadas],
+            ["COMPLETA", classesOverview.completas],
+            ["CONCLUIDA", classesOverview.concluidas],
+        ].filter(([, count]) => count > 0);
+
+        const palette = {
+            "ABERTA": ["rgba(16, 185, 129, 0.92)", "#10b981"],
+            "PLANEJADA": ["rgba(245, 158, 11, 0.92)", "#f59e0b"],
+            "COMPLETA": ["rgba(239, 68, 68, 0.92)", "#ef4444"],
+            "CONCLUIDA": ["rgba(100, 116, 139, 0.92)", "#64748b"],
+        };
+
+        return {
+            labels: entries.map(([status]) => status),
+            datasets: [{
+                label: 'Turmas',
+                data: entries.map(([, count]) => count),
+                backgroundColor: entries.map(([status]) => palette[status]?.[0] ?? 'rgba(100, 116, 139, 0.92)'),
+                borderColor: entries.map(([status]) => palette[status]?.[1] ?? '#64748b'),
+                borderWidth: 1,
+                hoverOffset: 8,
+            }],
+        };
+    }, [classesOverview]);
+
+    const occupancyChartData = useMemo(() => {
+        const topClasses = [...(classes ?? [])]
+            .map((classGroup) => {
+                const maxSeats = Number(classGroup.maxSeats ?? 0);
+                const availableSeats = Number(classGroup.availableSeats ?? Math.max(maxSeats - Number(classGroup.studentCount ?? 0), 0));
+                const occupiedSeats = Math.max(maxSeats - availableSeats, 0);
+                const occupancy = maxSeats > 0 ? Math.round((occupiedSeats / maxSeats) * 100) : 0;
+
+                return {
+                    label: classGroup.name,
+                    occupancy,
+                };
+            })
+            .sort((left, right) => right.occupancy - left.occupancy)
+            .slice(0, 5)
+            .reverse();
+
+        return {
+            labels: topClasses.map((classGroup) => classGroup.label),
+            datasets: [{
+                label: 'Ocupação (%)',
+                data: topClasses.map((classGroup) => classGroup.occupancy),
+                backgroundColor: 'rgba(37, 99, 235, 0.86)',
+                borderColor: '#2563eb',
+                borderWidth: 1,
+                borderRadius: 10,
+                barThickness: 16,
+            }],
+        };
+    }, [classes]);
+
+    const doughnutOptions = useMemo(() => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '68%',
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    padding: 18,
+                    boxWidth: 10,
+                    boxHeight: 10,
+                },
+            },
+            tooltip: {
+                callbacks: {
+                    label: (context) => `${context.label}: ${context.raw} turmas`,
+                },
+            },
+        },
+    }), []);
+
+    const occupancyOptions = useMemo(() => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        scales: {
+            x: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                    color: '#64748b',
+                    callback: (value) => `${value}%`,
+                },
+                grid: {
+                    color: 'rgba(148, 163, 184, 0.18)',
+                },
+            },
+            y: {
+                ticks: {
+                    color: '#64748b',
+                },
+                grid: {
+                    display: false,
+                },
+            },
+        },
+        plugins: {
+            legend: {
+                display: false,
+            },
+            tooltip: {
+                callbacks: {
+                    label: (context) => `Ocupação: ${context.raw}%`,
+                },
+            },
+        },
+    }), []);
 
     const tableHeaders = [<i className="bi bi-gear"></i>, "NOME", "CURSO", "ANO", "ALUNOS", 'VAGAS', 'SITUAÇÃO', ''];
 
@@ -94,45 +214,70 @@ function ManageClasses() {
             }
             {
                 activeTab === 'overview' && (
-                    <div className="row m-0 p-3 g-3">
-                        <div className="col-12 col-sm-6 col-md">
-                            <div className="card summary-card">
-                                <div className="card-body">
-                                    <h5 className="card-title summary-card__title text-center">Total de Turmas</h5>
-                                    <h1 className="summary-card__value text-center text-primary">{classesOverview.total}</h1>
+                    <div className="p-3 p-md-4">
+                        <div className="row g-3 mb-3">
+                            <div className="col-12 col-sm-6 col-lg">
+                                <div className="card summary-card h-100 border-0 shadow-sm">
+                                    <div className="card-body p-4 text-center">
+                                        <h5 className="card-title summary-card__title text-center">Total de Turmas</h5>
+                                        <h1 className="summary-card__value text-center text-primary">{classesOverview.total}</h1>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-12 col-sm-6 col-lg">
+                                <div className="card summary-card h-100 border-0 shadow-sm">
+                                    <div className="card-body p-4 text-center">
+                                        <h5 className="card-title summary-card__title text-center">Turmas Abertas</h5>
+                                        <h1 className="summary-card__value text-center text-success">{classesOverview.abertas}</h1>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-12 col-sm-6 col-lg">
+                                <div className="card summary-card h-100 border-0 shadow-sm">
+                                    <div className="card-body p-4 text-center">
+                                        <h5 className="card-title summary-card__title text-center">Turmas Planejadas</h5>
+                                        <h1 className="summary-card__value text-center text-warning">{classesOverview.planejadas}</h1>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-12 col-sm-6 col-lg">
+                                <div className="card summary-card h-100 border-0 shadow-sm">
+                                    <div className="card-body p-4 text-center">
+                                        <h5 className="card-title summary-card__title text-center">Turmas Completas</h5>
+                                        <h1 className="summary-card__value text-center text-danger">{classesOverview.completas}</h1>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-12 col-sm-6 col-lg">
+                                <div className="card summary-card h-100 border-0 shadow-sm">
+                                    <div className="card-body p-4 text-center">
+                                        <h5 className="card-title summary-card__title text-center">Turmas Concluídas</h5>
+                                        <h1 className="summary-card__value text-center text-secondary">{classesOverview.concluidas}</h1>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="col-12 col-sm-6 col-md">
-                            <div className="card summary-card">
-                                <div className="card-body">
-                                    <h5 className="card-title summary-card__title text-center">Turmas Abertas</h5>
-                                    <h1 className="summary-card__value text-center text-success">{classesOverview.abertas}</h1>
-                                </div>
+
+                        <div className="row g-3">
+                            <div className="col-12 col-lg-4">
+                                <ChartCard
+                                    title="Distribuição por situação"
+                                    subtitle="Status atual das turmas cadastradas"
+                                    type="doughnut"
+                                    data={classStatusChartData}
+                                    options={doughnutOptions}
+                                    height={260}
+                                />
                             </div>
-                        </div>
-                        <div className="col-12 col-sm-6 col-md">
-                            <div className="card summary-card">
-                                <div className="card-body">
-                                    <h5 className="card-title summary-card__title text-center">Turmas Planejadas</h5>
-                                    <h1 className="summary-card__value text-center text-warning">{classesOverview.planejadas}</h1>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-12 col-sm-6 col-md">
-                            <div className="card summary-card">
-                                <div className="card-body">
-                                    <h5 className="card-title summary-card__title text-center">Turmas Completas</h5>
-                                    <h1 className="summary-card__value text-center text-danger">{classesOverview.completas}</h1>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-12 col-sm-6 col-md">
-                            <div className="card summary-card">
-                                <div className="card-body">
-                                    <h5 className="card-title summary-card__title text-center">Turmas Concluídas</h5>
-                                    <h1 className="summary-card__value text-center text-secondary">{classesOverview.concluidas}</h1>
-                                </div>
+                            <div className="col-12 col-lg-8">
+                                <ChartCard
+                                    title="Turmas com maior ocupação"
+                                    subtitle="Top 5 turmas por percentual de lotação"
+                                    type="bar"
+                                    data={occupancyChartData}
+                                    options={occupancyOptions}
+                                    height={260}
+                                />
                             </div>
                         </div>
                     </div>

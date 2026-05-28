@@ -1,18 +1,27 @@
 import StudentFormModal from "../../components/student/student-form-modal";
 import DataTable from "../../components/.common/data-table";
 import AppHeader from "../../components/.common/app-header";
+import ChartCard from "../../components/.common/chart-card";
 import api from "../../services/api";
 import renderProfileLink from "../../components/.common/render-profile-link";
 import deleteActionCell from "../../components/.common/delete-cell";
 import DeleteModal from "../../components/.common/delete-modal";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+const badgeColors = { PENDENTE: "warning", MATRICULADO: "success", TRANCADO: "secondary" };
 
 function ManageStudents() {
-    const badgeColors = { PENDENTE: "warning", MATRICULADO: "success", TRANCADO: "secondary" };
     const [students, setStudents] = useState(null);
     const [selectedDeleteRoute, setSelectedDeleteRoute] = useState(null);
     const [activeTab, setActiveTab] = useState('data');
     const [studentsNumbers, setStudentsNumbers] = useState({total: 0, enrolled: 0, pendingEnrollment: 0, lockedEnrollments: 0});
+
+    const parseBrDate = (dateString) => {
+        if (!dateString) return null;
+        const [day, month, year] = dateString.split('/').map(Number);
+        if (!day || !month || !year) return null;
+        return new Date(year, month - 1, day);
+    };
 
     // carrega lista inicial para alimentar a tabela de alunos
     useEffect(() => {
@@ -50,6 +59,116 @@ function ManageStudents() {
         }
         loadStudents();
     }, []);
+
+    const statusChartData = useMemo(() => {
+        const labels = ["MATRICULADO", "PENDENTE", "TRANCADO"];
+        return {
+            labels,
+            datasets: [{
+                label: "Alunos",
+                data: labels.map((status) => (students ?? []).filter((student) => student.statusLabel === status).length),
+                backgroundColor: ["rgba(16, 185, 129, 0.92)", "rgba(245, 158, 11, 0.92)", "rgba(100, 116, 139, 0.92)"],
+                borderColor: ["#10b981", "#f59e0b", "#64748b"],
+                borderWidth: 1,
+                hoverOffset: 8,
+            }],
+        };
+    }, [students]);
+
+    const enrollmentTrendData = useMemo(() => {
+        const monthFormatter = new Intl.DateTimeFormat('pt-BR', { month: 'short' });
+        const now = new Date();
+        const months = Array.from({ length: 6 }, (_, index) => new Date(now.getFullYear(), now.getMonth() - (5 - index), 1));
+        const buckets = new Map(
+            months.map((date) => {
+                const key = `${date.getFullYear()}-${date.getMonth()}`;
+                return [key, { label: monthFormatter.format(date).replace('.', '').toUpperCase(), total: 0 }];
+            })
+        );
+
+        (students ?? []).forEach((student) => {
+            const enrollmentDate = parseBrDate(student.enrollmentDate);
+            if (!enrollmentDate) return;
+
+            const bucket = buckets.get(`${enrollmentDate.getFullYear()}-${enrollmentDate.getMonth()}`);
+            if (bucket) bucket.total += 1;
+        });
+
+        const monthlySummary = [...buckets.values()];
+
+        return {
+            labels: monthlySummary.map((item) => item.label),
+            datasets: [{
+                label: 'Novos alunos',
+                data: monthlySummary.map((item) => item.total),
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.12)',
+                pointBackgroundColor: '#2563eb',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                tension: 0.35,
+                fill: true,
+            }],
+        };
+    }, [students]);
+
+    const doughnutOptions = useMemo(() => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '68%',
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    padding: 18,
+                    boxWidth: 10,
+                    boxHeight: 10,
+                },
+            },
+            tooltip: {
+                callbacks: {
+                    label: (context) => `${context.label}: ${context.raw} alunos`,
+                },
+            },
+        },
+    }), []);
+
+    const trendOptions = useMemo(() => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    precision: 0,
+                    color: '#64748b',
+                },
+                grid: {
+                    color: 'rgba(148, 163, 184, 0.18)',
+                },
+            },
+            x: {
+                ticks: {
+                    color: '#64748b',
+                },
+                grid: {
+                    display: false,
+                },
+            },
+        },
+        plugins: {
+            legend: {
+                display: false,
+            },
+            tooltip: {
+                callbacks: {
+                    label: (context) => `${context.raw} alunos cadastrados`,
+                },
+            },
+        },
+    }), []);
 
     // contadores agora calculados quando os alunos são carregados
 
@@ -107,37 +226,62 @@ function ManageStudents() {
             }
             {
                 activeTab === 'overview' && (
-                    <div className="row m-0 p-3 g-3">
-                        <div className="col-12 col-sm-6 col-md">
-                            <div className="card summary-card">
-                                <div className="card-body">
-                                    <h5 className="card-title summary-card__title text-center">Total de Alunos</h5>
-                                    <h1 className="summary-card__value text-center text-primary">{studentsNumbers.total}</h1>
+                    <div className="p-3 p-md-4">
+                        <div className="row g-3 mb-3">
+                            <div className="col-12 col-sm-6 col-lg-3">
+                                <div className="card summary-card h-100 border-0 shadow-sm">
+                                    <div className="card-body p-4 text-center">
+                                        <h5 className="card-title summary-card__title text-center">Total de Alunos</h5>
+                                        <h1 className="summary-card__value text-center text-primary">{studentsNumbers.total}</h1>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-12 col-sm-6 col-lg-3">
+                                <div className="card summary-card h-100 border-0 shadow-sm">
+                                    <div className="card-body p-4 text-center">
+                                        <h5 className="card-title summary-card__title text-center">Matrícula Ativa</h5>
+                                        <h1 className="summary-card__value text-center text-success">{studentsNumbers.enrolled}</h1>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-12 col-sm-6 col-lg-3">
+                                <div className="card summary-card h-100 border-0 shadow-sm">
+                                    <div className="card-body p-4 text-center">
+                                        <h5 className="card-title summary-card__title text-center">Matrícula Pendente</h5>
+                                        <h1 className="summary-card__value text-center text-warning">{studentsNumbers.pendingEnrollment}</h1>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-12 col-sm-6 col-lg-3">
+                                <div className="card summary-card h-100 border-0 shadow-sm">
+                                    <div className="card-body p-4 text-center">
+                                        <h5 className="card-title summary-card__title text-center">Matrícula Trancada</h5>
+                                        <h1 className="summary-card__value text-center text-secondary">{studentsNumbers.lockedEnrollments}</h1>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="col-12 col-sm-6 col-md">
-                            <div className="card summary-card">
-                                <div className="card-body">
-                                    <h5 className="card-title summary-card__title text-center">Matrícula Ativa</h5>
-                                    <h1 className="summary-card__value text-center text-success">{studentsNumbers.enrolled}</h1>
-                                </div>
+
+                        <div className="row g-3">
+                            <div className="col-12 col-lg-4">
+                                <ChartCard
+                                    title="Distribuição de matrículas"
+                                    subtitle="Status atual dos alunos cadastrados"
+                                    type="doughnut"
+                                    data={statusChartData}
+                                    options={doughnutOptions}
+                                    height={260}
+                                />
                             </div>
-                        </div>
-                        <div className="col-12 col-sm-6 col-md">
-                            <div className="card summary-card">
-                                <div className="card-body">
-                                    <h5 className="card-title summary-card__title text-center">Matrícula Pendente</h5>
-                                    <h1 className="summary-card__value text-center text-danger">{studentsNumbers.pendingEnrollment}</h1>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-12 col-sm-6 col-md">
-                            <div className="card summary-card">
-                                <div className="card-body">
-                                    <h5 className="card-title summary-card__title text-center">Matrícula Trancada</h5>
-                                    <h1 className="summary-card__value text-center text-secondary">{studentsNumbers.lockedEnrollments}</h1>
-                                </div>
+                            <div className="col-12 col-lg-8">
+                                <ChartCard
+                                    title="Novas matrículas por mês"
+                                    subtitle="Últimos 6 meses com base na data de matrícula"
+                                    type="line"
+                                    data={enrollmentTrendData}
+                                    options={trendOptions}
+                                    height={260}
+                                />
                             </div>
                         </div>
                     </div>
