@@ -25,7 +25,7 @@ const billingColors = {
 function ManageCourses() {
     const [courses, setCourses] = useState(null);
     const [selectedDeleteRoute, setSelectedDeleteRoute] = useState(null);
-    const [activeTab, setActiveTab] = useState('data');
+    const [activeTab, setActiveTab] = useState('overview');
 
     // busca cursos na api para popular a listagem principal
     useEffect(() => {

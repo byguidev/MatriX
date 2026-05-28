@@ -231,15 +231,15 @@ const COLLAPSE_IDS = ["collapse-students", "collapse-courses"]
                         </li>
                     )}
 
-                    {/* item de visao geral */}
+                    {/* item de pagina inicial */}
                     <li className={expandedNavItemClass}>
-                        <a href="#" className={navLinkClass}>
+                        <Link to="/home" className={getGroupClass(["/home"])}>
                             <i className={isVisuallyExpanded
                                 ? "bi bi-bar-chart-line-fill me-2"
                                 : "bi bi-bar-chart-line-fill"
                             }></i>
-                            <span className={iconVisibility}>Visão Geral</span>
-                        </a>
+                            <span className={iconVisibility}>Página Inicial</span>
+                        </Link>
                     </li>
 
                     {/* grupo de rotas de alunos */}

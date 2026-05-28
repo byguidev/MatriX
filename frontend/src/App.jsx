@@ -1,5 +1,5 @@
 import SidebarDesktop from "./components/.common/sidebar-desktop";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ManageStudents from "./pages/student/manage-students";
 import ManageCourses from "./pages/course/manage-courses";
 import ManageClasses from "./pages/class/manage-classes";
@@ -7,6 +7,7 @@ import ManageInvoices from "./pages/invoice/manage-invoices";
 import StudentProfile from "./pages/student/student-profile";
 import CourseProfile from "./pages/course/course-profile";
 import ClassProfile from "./pages/class/class-profile";
+import HomePage from "./pages/home/home-page";
 
 import "./styles/global.css";
 
@@ -20,6 +21,8 @@ function App() {
         <div className="routes-container content-wrapper">
           <Routes>
             {/* separa os fluxos de alunos, cursos e turmas */}
+            <Route path="/" element={<Navigate to="/home" replace />} />
+            <Route path="/home" element={<HomePage />} />
             <Route path="/manage-students" element={<ManageStudents />} />
             <Route path="/manage-students/:id" element={<StudentProfile />} />
             <Route path="/manage-courses" element={<ManageCourses />} />

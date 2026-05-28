@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from "react";
 function ManageClasses() {
     const [classes, setClasses] = useState(null);
     const [selectedDeleteRoute, setSelectedDeleteRoute] = useState(null);
-    const [activeTab, setActiveTab] = useState('data');
+    const [activeTab, setActiveTab] = useState('overview');
 
     // carrega turmas com dados agregados de curso para a tabela
     useEffect(() => {

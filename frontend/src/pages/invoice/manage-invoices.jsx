@@ -9,7 +9,7 @@ function ManageInvoices() {
     const statusColors = { ABERTA: "warning", VENCIDA: "danger", PAGA: "success" };
     const [invoices, setInvoices] = useState(null);
     const [serverError, setServerError] = useState(null);
-    const [activeTab, setActiveTab] = useState('data');
+    const [activeTab, setActiveTab] = useState('overview');
 
     const formatCurrency = (value) => new Intl.NumberFormat('pt-BR', { style: "currency", currency: "BRL" }).format(value ?? 0);
 

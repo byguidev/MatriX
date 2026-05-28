@@ -13,7 +13,7 @@ const badgeColors = { PENDENTE: "warning", MATRICULADO: "success", TRANCADO: "se
 function ManageStudents() {
     const [students, setStudents] = useState(null);
     const [selectedDeleteRoute, setSelectedDeleteRoute] = useState(null);
-    const [activeTab, setActiveTab] = useState('data');
+    const [activeTab, setActiveTab] = useState('overview');
     const [studentsNumbers, setStudentsNumbers] = useState({total: 0, enrolled: 0, pendingEnrollment: 0, lockedEnrollments: 0});
 
     const parseBrDate = (dateString) => {
