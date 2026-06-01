@@ -19,6 +19,23 @@ html, body, #root {
   }
 }
 
+nav {
+  background: linear-gradient(180deg, #191792, #3488c0) !important;
+}
+
+/* Cor centralizada para textos da sidebar */
+.sidebar-text-color {
+  color: rgb(255, 255, 255) !important;
+}
+
+
+/* Garante que o Bootstrap nao sobrescreva as bordas da sidebar */
+.sidebar-border-bottom.border-bottom,
+.sidebar-border-bottom.border-top,
+.sidebar-border-bottom.nav-item {
+  border-color: #ffffff2f !important;
+}
+
 /* Garante que o Routes renderize corretamente */
 .routes-container {
   flex-grow: 1;

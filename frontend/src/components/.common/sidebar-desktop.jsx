@@ -39,6 +39,7 @@ const COLLAPSE_IDS = ["collapse-students", "collapse-courses"]
             left: 0,
             width: mobileWidth,
             minWidth: mobileWidth,
+            // color centralized via .sidebar-text-color
             // usa dvh para evitar corte da sidebar por barras do navegador mobile
             height: 'calc(100dvh - 60px)',
             transform: isMobileOpen ? 'translateX(0)' : 'translateX(-100%)',
@@ -48,6 +49,7 @@ const COLLAPSE_IDS = ["collapse-students", "collapse-courses"]
             position: 'relative',
             width: isExpanded ? `${MAX_WIDTH}px` : `${MIN_WIDTH}px`,
             minWidth: isExpanded ? `${MAX_WIDTH}px` : `${MIN_WIDTH}px`,
+            // color centralized via .sidebar-text-color
             transition: 'all 0.3s ease'
         }
     }
@@ -59,7 +61,7 @@ const COLLAPSE_IDS = ["collapse-students", "collapse-courses"]
     const collapsedNavItemClass = `${baseNavItemClass} d-flex justify-content-center`
     const expandedNavItemClass = isVisuallyExpanded ? baseNavItemClass : collapsedNavItemClass
     
-    const baseNavLinkClass = "nav-link w-auto"
+    const baseNavLinkClass = "nav-link w-auto sidebar-text-color"
     const expandedNavLinkClass = `${baseNavLinkClass} ms-4`
     const collapsedNavLinkClass = `${baseNavLinkClass} text-center`
     const navLinkClass = isVisuallyExpanded ? expandedNavLinkClass : collapsedNavLinkClass
@@ -67,13 +69,13 @@ const COLLAPSE_IDS = ["collapse-students", "collapse-courses"]
     // destaca menus ativos conforme rota atual
     const getGroupClass = (paths) => {
         const isActive = paths.some(p => location.pathname.startsWith(p));
-        return `${navLinkClass} ${isActive ? "text-muted fw-bold" : ""}`;
+        return `${navLinkClass} ${isActive ? "fw-bold" : ""}`;
     };
 
     const getLinkClass = (path) => {
         const isActive = location.pathname.startsWith(path);
         // aplica recuo nos links internos para reforcar hierarquia visual
-        return `nav-link w-100 ms-3 ${isActive ? "text-muted fw-bold" : ""}`;
+        return `nav-link w-100 ms-4 sidebar-text-color ${isActive ? "fw-bold" : ""}`;
     };
 
     // fecha submenus ao recolher para evitar inconsistencias de estado visual
@@ -178,7 +180,7 @@ const COLLAPSE_IDS = ["collapse-students", "collapse-courses"]
                         >
                             <i className="bi bi-list fs-5"></i>
                         </button>
-                        <a href="#" className="navbar-brand text-muted mx-auto d-flex align-items-center mb-0 text-decoration-none">
+                        <a href="#" className="navbar-brand sidebar-text-color mx-auto d-flex align-items-center mb-0 text-decoration-none">
                             <i className="bi bi-columns-gap h2 my-0 me-2"></i>
                             <span className="h2 my-0 fw-bold">MatriX</span>
                         </a>
@@ -200,7 +202,7 @@ const COLLAPSE_IDS = ["collapse-students", "collapse-courses"]
             {/* sidebar principal com navegacao do painel */}
             <nav
                 // evita conflito de altura no mobile com a regra h-100 do bootstrap
-                className={`navbar flex-shrink-0 ${!isMobile ? 'h-100' : ''} bg-light border-end d-md-block p-0 flex-column`}
+                className={`navbar flex-shrink-0 ${!isMobile ? 'h-100' : ''} border-end d-md-block p-0 flex-column`}
                 style={navbarStyles.sidebar}
                 onTransitionEnd={handleTransition}
             >
@@ -210,7 +212,7 @@ const COLLAPSE_IDS = ["collapse-students", "collapse-courses"]
                     {!isMobile && (
                         <li className={isExpanded ? baseNavItemClass : `${baseNavItemClass} d-flex flex-column align-items-center`}>
                             <button
-                                className="btn w-100 py-0 d-none d-md-block"
+                                className="btn w-100 py-0 d-none d-md-block sidebar-text-color"
                                 onClick={toggleSidebar}
                             >
                                 <i className={`bi ${arrowIcon} fs-2`}></i>
@@ -218,8 +220,8 @@ const COLLAPSE_IDS = ["collapse-students", "collapse-courses"]
                             <a
                                 href="#"
                                 className={isExpanded
-                                    ? "nav-link ps-4 border-top w-100 d-flex align-items-center py-2"
-                                    : "nav-link border-top text-center w-100 d-flex align-items-center justify-content-center"
+                                        ? "nav-link sidebar-text-color sidebar-border-bottom ps-4 border-top w-100 d-flex align-items-center py-2"
+                                        : "nav-link sidebar-border-bottom border-top text-center sidebar-text-color w-100 d-flex align-items-center justify-content-center"
                                 }
                             >
                                 <i className={isExpanded
@@ -244,27 +246,13 @@ const COLLAPSE_IDS = ["collapse-students", "collapse-courses"]
 
                     {/* grupo de rotas de alunos */}
                     <li className={expandedNavItemClass}>
-                        <a
-                            href="#"
-                            className={getGroupClass(["/manage-students", "/student-profile"])}
-                            data-bs-toggle="collapse"
-                            data-bs-target="#collapse-students"
-                            onClick={onClickCollapse}
-                        >
+                        <Link to="/manage-students" className={getGroupClass(["/manage-students"])}>
                             <i className={isVisuallyExpanded
-                                ? "bi bi-file-person-fill me-2"
-                                : "bi bi-file-person-fill"
+                                ? "bi bi-person-lines-fill me-2"
+                                : "bi bi-person-lines-fill"
                             }></i>
                             <span className={iconVisibility}>Alunos</span>
-                        </a>
-                        <ul className="navbar-nav collapse w-100 ps-4" id="collapse-students">
-                            <li className="nav-item border-bottom w-100">
-                                <Link to="/manage-students" className={getLinkClass("/manage-students")}>
-                                    <i className={`bi bi-person-lines-fill ${showText ? "me-2" : ""}`}></i>
-                                    <span className={iconVisibility}>Gerenciar Alunos</span>
-                                </Link>
-                            </li>
-                        </ul>
+                        </Link>
                     </li>
 
                     {/* grupo de rotas de cursos e turmas */}
@@ -283,13 +271,13 @@ const COLLAPSE_IDS = ["collapse-students", "collapse-courses"]
                             <span className={iconVisibility}>Ensino</span>
                         </a>
                         <ul className="navbar-nav collapse w-100 ps-4" id="collapse-courses">
-                            <li className="nav-item border-bottom w-100">
+                            <li className="nav-item border-bottom sidebar-border-bottom w-100">
                                 <Link to="/manage-courses" className={getLinkClass("/manage-courses")}>
                                     <i className={`bi bi-journal-text ${showText ? "me-2" : ""}`}></i>
                                     <span className={iconVisibility}>Gerenciar Cursos</span>
                                 </Link>
                             </li>
-                            <li className="nav-item border-bottom w-100">
+                            <li className="nav-item border-bottom sidebar-border-bottom w-100">
                                 <Link to="/manage-classes" className={getLinkClass("/manage-classes")}>
                                     <i className={`bi bi-collection ${showText ? "me-2" : ""}`}></i>
                                     <span className={iconVisibility}>Gerenciar Turmas</span>
@@ -310,7 +298,7 @@ const COLLAPSE_IDS = ["collapse-students", "collapse-courses"]
                     </li>
 
                     {/* configuracoes fica no rodape para manter acesso rapido */}
-                    <li className={`${expandedNavItemClass} mt-auto border-top`}>
+                    <li className={`${expandedNavItemClass} mt-auto border-top sidebar-border-bottom`}>
                         <Link to="/configuracoes" className={getGroupClass(["/configuracoes"])}>
                             <i className={isVisuallyExpanded
                                 ? "bi bi-gear me-2"
