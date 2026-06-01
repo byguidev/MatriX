@@ -169,12 +169,12 @@ const COLLAPSE_IDS = ["collapse-students", "collapse-courses"]
             {/* navbar superior exibida apenas no mobile */}
             {isMobile && (
                 <nav
-                    className="navbar navbar-light bg-light border-bottom d-md-none position-fixed top-0 start-0 w-100"
+                    className="navbar sidebar-text-color border-bottom d-md-none position-fixed top-0 start-0 w-100"
                     style={navbarStyles.mobileNavbar}
                 >
                     <div className="container-fluid d-flex align-items-center justify-content-between">
                         <button
-                            className="btn btn-light border"
+                            className="btn border sidebar-text-color"
                             onClick={toggleSidebar}
                             aria-label="Abrir menu lateral"
                         >
