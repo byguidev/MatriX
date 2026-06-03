@@ -14,6 +14,15 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model User {
+  id            Int @id   @default(autoincrement())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  role          String  
+  createdAt     DateTime  @default(now())
+}
+
 model Student {
   id               Int          @id @default(autoincrement())
   fullName         String       @map("nome")

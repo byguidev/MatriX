@@ -8,6 +8,8 @@ import StudentProfile from "./pages/student/student-profile";
 import CourseProfile from "./pages/course/course-profile";
 import ClassProfile from "./pages/class/class-profile";
 import HomePage from "./pages/home/home-page";
+import UserLogin from "./components/user/user-login";
+import UserSignUp from "./components/user/user-sign-up";
 
 import "./styles/global.css";
 
@@ -22,6 +24,8 @@ function App() {
           <Routes>
             {/* separa os fluxos de alunos, cursos e turmas */}
             <Route path="/" element={<Navigate to="/home" replace />} />
+            <Route path="/login" element={<UserLogin />} />
+            <Route path="/sign-up" element={<UserSignUp />} />
             <Route path="/home" element={<HomePage />} />
             <Route path="/manage-students" element={<ManageStudents />} />
             <Route path="/manage-students/:id" element={<StudentProfile />} />

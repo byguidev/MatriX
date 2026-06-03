@@ -6,6 +6,8 @@ function HomePage() {
         { label: "Gerenciar cursos", to: "/manage-courses", icon: "bi-journal-text" },
         { label: "Gerenciar turmas", to: "/manage-classes", icon: "bi-collection" },
         { label: "Acompanhar faturas", to: "/manage-invoices", icon: "bi-cash-coin" },
+        // Temporário, remover depois
+        { label: "Entrar", to: "/login"}
     ];
 
     const steps = [
@@ -49,7 +51,7 @@ function HomePage() {
 
                     <div className="row g-2 g-md-3">
                         {quickActions.map((action) => (
-                            <div className="col-12 col-sm-6 col-lg-3" key={action.to}>
+                            <div className="col-12 col-sm-6 col-lg" key={action.to}>
                                 <Link to={action.to} className="home-page__quick-action text-decoration-none">
                                     <i className={`bi ${action.icon} me-2`}></i>
                                     {action.label}
