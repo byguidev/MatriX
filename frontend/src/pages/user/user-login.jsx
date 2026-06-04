@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
+import api from '../../services/api';
 
 export default function UserLogin() {
 
@@ -20,8 +21,15 @@ export default function UserLogin() {
         formState: {errors}
     } = useForm({ resolver: zodResolver(userSchema) });
 
-    function onSubmit(data) {
-        console.log(data);
+    async function onSubmit(data) {
+        const payload = data;
+        try {
+            const response = await api.post("/api/login", payload);
+            console.log(response);
+        } catch(err) {
+            console.log(err.response.data.message);
+        }
+
     }
 
     function onError(error) {

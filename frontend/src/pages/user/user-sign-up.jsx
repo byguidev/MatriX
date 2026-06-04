@@ -1,9 +1,11 @@
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import api from '../../services/api';
 
 export default function UserSignUp() {
+    const navigate = useNavigate();
 
     const userSchema = z.object({
         name: z.string()
@@ -25,8 +27,10 @@ export default function UserSignUp() {
         formState: {errors}
     } = useForm({ resolver: zodResolver(userSchema) });
 
-    function onSubmit(data) {
-        console.log(data);
+    async function onSubmit(data) {
+        const payload = data;
+        await api.post("/api/sign-up", payload);
+        navigate("/login");
     }
 
     function onError(error) {

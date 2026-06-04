@@ -6,6 +6,8 @@ const classesRouter = require('./routes/classes.routes');
 const errorHandler = require('./middlewares/error.middleware');
 const enrollmentsRouter = require('./routes/enrollments.routes');
 const invoicesRouter = require('./routes/invoices.routes');
+const signUpRouter = require('./routes/sign-up.routes');
+const loginRouter = require('./routes/login.routes');
 require('dotenv').config();
 
 const app = express();
@@ -18,8 +20,10 @@ app.use(express.json());
 app.use('/api/manage-students', studentsRouter);
 app.use('/api/manage-courses', coursesRouter);
 app.use('/api/manage-classes', classesRouter);
-app.use('/api/manage-enrollments', enrollmentsRouter)
-app.use('/api/manage-invoices', invoicesRouter)
+app.use('/api/manage-enrollments', enrollmentsRouter);
+app.use('/api/manage-invoices', invoicesRouter);
+app.use('/api/sign-up', signUpRouter);
+app.use('/api/login', loginRouter);
 
 app.use(errorHandler);
 
