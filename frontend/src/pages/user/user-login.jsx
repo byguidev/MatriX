@@ -1,17 +1,19 @@
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 
 export default function UserLogin() {
+    const navigate = useNavigate();
+    const [apiError, setApiError] = useState('');
 
     const userSchema = z.object({
         email: z.string()
             .email('E-mail inválido'),
         password: z.string()
             .min(6, 'A senha precisa ter no minimo 6 caracteres')
-            .min(6)
             .max(16, 'A senha pode ter no maximo 16 caracteres')
     });
 
@@ -23,11 +25,13 @@ export default function UserLogin() {
 
     async function onSubmit(data) {
         const payload = data;
+        setApiError('');
         try {
-            const response = await api.post("/api/login", payload);
-            console.log(response);
+            await api.post("/api/login", payload);
+            navigate("/home");
         } catch(err) {
-            console.log(err.response.data.message);
+            const message = err?.response?.data?.message || 'Não foi possível realizar o login. Tente novamente.';
+            setApiError(message);
         }
 
     }
@@ -42,6 +46,12 @@ export default function UserLogin() {
                 <form onSubmit={handleSubmit(onSubmit, onError)} className='auth-card w-100'>
                     <p className='auth-eyebrow mb-2 text-center'>matrix</p>
                     <h1 className='auth-title h3 mb-4 text-center'>Entrar na conta</h1>
+
+                    {apiError && (
+                        <div className='alert alert-danger' role='alert'>
+                            {apiError}
+                        </div>
+                    )}
 
                     <div className='mb-3'>
                         <label className='form-label'>E-mail</label>

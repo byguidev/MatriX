@@ -5,7 +5,7 @@ function errorHandler(err, req, res, next) {
     if (err instanceof ZodError) {
         console.log(err);
         return res.status(400).json({
-            "message": "Invalid data",
+            "message": "Dados inválidos",
             "issues": err.flatten().fieldErrors,
         });
     }
@@ -20,7 +20,7 @@ function errorHandler(err, req, res, next) {
     console.log(err);
 
     return res.status(500).json({
-        "message": "Internal server error"
+        "message": "Erro interno do servidor"
     });
 }
 

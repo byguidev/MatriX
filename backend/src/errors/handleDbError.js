@@ -2,18 +2,18 @@ const { Prisma } = require('@prisma/client');
 const AppError = require('../errors/AppError');
 
 const prismaErrors = {
-  P2000: { message: 'Input value is too long', statusCode: 400 },
-  P2001: { message: 'Record does not exist', statusCode: 404 },
-  P2002: { message: 'Duplicate value violates unique constraint', statusCode: 409 },
-  P2003: { message: 'Invalid foreign key reference', statusCode: 400 },
-  P2011: { message: 'Required field is missing', statusCode: 400 },
-  P2012: { message: 'Missing required input value', statusCode: 400 },
-  P2014: { message: 'Invalid relation operation', statusCode: 400 },
-  P2021: { message: 'Database table does not exist', statusCode: 500 },
-  P2022: { message: 'Database column does not exist', statusCode: 500 },
-  P2024: { message: 'Database connection timeout', statusCode: 503 },
-  P2025: { message: 'Requested record was not found', statusCode: 404 },
-  P2034: { message: 'Transaction conflict detected', statusCode: 409 },
+  P2000: { message: 'O valor informado é longo demais', statusCode: 400 },
+  P2001: { message: 'Registro não encontrado', statusCode: 404 },
+  P2002: { message: 'Já existe um cadastro com este valor', statusCode: 409 },
+  P2003: { message: 'Referência de chave estrangeira inválida', statusCode: 400 },
+  P2011: { message: 'Campo obrigatório não informado', statusCode: 400 },
+  P2012: { message: 'Campo obrigatório sem valor', statusCode: 400 },
+  P2014: { message: 'Operação de relação inválida', statusCode: 400 },
+  P2021: { message: 'Tabela do banco de dados não existe', statusCode: 500 },
+  P2022: { message: 'Coluna do banco de dados não existe', statusCode: 500 },
+  P2024: { message: 'Tempo de conexão com o banco esgotado', statusCode: 503 },
+  P2025: { message: 'Registro solicitado não foi encontrado', statusCode: 404 },
+  P2034: { message: 'Conflito de transação detectado', statusCode: 409 },
 };
 
 function handleDbError(err) {
@@ -24,10 +24,10 @@ function handleDbError(err) {
             throw new AppError(prismaError.message, prismaError.statusCode);
         }
 
-        throw new AppError("Database operation failed", 500);
+        throw new AppError("Falha na operação do banco de dados", 500);
     }
 
-    throw new AppError("Internal server error", 500);
+    throw new AppError("Erro interno do servidor", 500);
 }
 
 module.exports = handleDbError;

@@ -1,11 +1,20 @@
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 
 export default function UserSignUp() {
     const navigate = useNavigate();
+    const [successMessage, setSuccessMessage] = useState('');
+    const [apiError, setApiError] = useState('');
+
+    useEffect(() => {
+        if (!successMessage) return;
+        const timer = setTimeout(() => setSuccessMessage(''), 3000);
+        return () => clearTimeout(timer);
+    }, [successMessage]);
 
     const userSchema = z.object({
         name: z.string()
@@ -29,8 +38,15 @@ export default function UserSignUp() {
 
     async function onSubmit(data) {
         const payload = data;
-        await api.post("/api/sign-up", payload);
-        navigate("/login");
+        setApiError('');
+        try {
+            await api.post("/api/sign-up", payload);
+            setSuccessMessage("Usuário criado com sucesso");
+            setTimeout(() => navigate("/login"), 1000);
+        } catch(err) {
+            const message = err?.response?.data?.message || 'Não foi possível realizar o cadastro. Tente novamente.';
+            setApiError(message);
+        }
     }
 
     function onError(error) {
@@ -43,6 +59,18 @@ export default function UserSignUp() {
                 <form onSubmit={handleSubmit(onSubmit, onError)} className='auth-card w-100'>
                     <p className='auth-eyebrow mb-2 text-center'>matrix</p>
                     <h1 className='auth-title h3 mb-4 text-center'>Criar conta</h1>
+
+                    {apiError && (
+                        <div className='alert alert-danger' role='alert'>
+                            {apiError}
+                        </div>
+                    )}
+
+                    {successMessage && (
+                        <div className='alert alert-success' role='alert'>
+                            {successMessage}
+                        </div>
+                    )}
 
                     <div className='mb-3'>
                         <label className='form-label'>Nome completo</label>
@@ -60,7 +88,7 @@ export default function UserSignUp() {
                         <input
                             className={`form-control ${errors.email ? 'is-invalid' : ''}`}
                             type='email'
-                            placeholder='voce@exemplo.com'
+                            placeholder='você@exemplo.com'
                             {...register('email')}
                         />
                         {errors.email && <div className='invalid-feedback'>{errors.email.message}</div>}
