@@ -5,8 +5,11 @@ const AppError = require('../errors/AppError');
 const handleDbError = require('../errors/handleDbError');
 
 // lista cursos com preco formatado para exibicao direta no frontend
-async function listCourses() {
-    const courses = await prisma.course.findMany({ orderBy: { name: 'asc' } });
+async function listCourses(userId) {
+    const courses = await prisma.course.findMany({ 
+        where: { userId: Number(userId) },
+        orderBy: { name: 'asc' } 
+    });
     courses.forEach(course => {
         course.price = formatter.formatCurrency(course.price);
     });
@@ -31,14 +34,15 @@ async function getCourse(id) {
 }
 
 // salva curso padronizando campos textuais em caixa alta
-async function createCourse(body) {
+async function createCourse(body, userId) {
     try {
         await prisma.course.create({
             data: {
                 name: body.name.toUpperCase(),
                 code: body.code.toUpperCase(),
                 price: body.price,
-                billingCycle: body.billingCycle.toUpperCase()
+                billingCycle: body.billingCycle.toUpperCase(),
+                userId: Number(userId)
             }
         });
     } catch(err) {

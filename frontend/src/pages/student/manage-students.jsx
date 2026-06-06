@@ -8,6 +8,7 @@ import deleteActionCell from "../../components/.common/delete-cell";
 import DeleteModal from "../../components/.common/delete-modal";
 import { useEffect, useMemo, useState } from "react";
 
+const token = localStorage.getItem("token");
 const badgeColors = { PENDENTE: "warning", MATRICULADO: "success", TRANCADO: "secondary" };
 
 function ManageStudents() {
@@ -231,7 +232,7 @@ function ManageStudents() {
                         bodyContent={filteredStudents} 
                         headerColumnClasses={{ 1: "width-1", 7: "width-1" }} 
                         bodyColumnClasses={{ 1: 'text-center p-0', 2: "text-start", 3: "font-monospace", 4: "font-monospace", 6: "font-monospace", 5: "text-start", 8: "text-center p-0 width-1" }} 
-                        ignoredProperties={['id', 'enrollmentDate', 'enrollmentCount', 'statusLabel']} 
+                        ignoredProperties={['id', 'enrollmentDate', 'enrollmentCount', 'statusLabel', 'userId']} 
                         startColumn={{
                             value: 'Profile', 
                             profileLink: true,

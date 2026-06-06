@@ -10,6 +10,7 @@ import ClassProfile from "./pages/class/class-profile";
 import HomePage from "./pages/home/home-page";
 import UserLogin from "./pages/user/user-login";
 import UserSignUp from "./pages/user/user-sign-up";
+import ProtectedRoute from "./components/.common/protected-route";
 
 import "./styles/global.css";
 
@@ -30,17 +31,17 @@ function AppShell() {
       {!isAuthPage && <SidebarDesktop />}
       <div className={`routes-container ${isAuthPage ? '' : 'content-wrapper'}`}>
         <Routes>
-          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<UserLogin />} />
           <Route path="/sign-up" element={<UserSignUp />} />
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/manage-students" element={<ManageStudents />} />
-          <Route path="/manage-students/:id" element={<StudentProfile />} />
-          <Route path="/manage-courses" element={<ManageCourses />} />
-          <Route path="/manage-courses/:id" element={<CourseProfile />} />
-          <Route path="/manage-classes" element={<ManageClasses />} />
-          <Route path="/manage-classes/:id" element={<ClassProfile />} />
-          <Route path="/manage-invoices" element={<ManageInvoices />} />
+          <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+          <Route path="/manage-students" element={<ProtectedRoute><ManageStudents /></ProtectedRoute>} />
+          <Route path="/manage-students/:id" element={<ProtectedRoute><StudentProfile /></ProtectedRoute>} />
+          <Route path="/manage-courses" element={<ProtectedRoute><ManageCourses /></ProtectedRoute>} />
+          <Route path="/manage-courses/:id" element={<ProtectedRoute><CourseProfile /></ProtectedRoute>} />
+          <Route path="/manage-classes" element={<ProtectedRoute><ManageClasses /></ProtectedRoute>} />
+          <Route path="/manage-classes/:id" element={<ProtectedRoute><ClassProfile /></ProtectedRoute>} />
+          <Route path="/manage-invoices" element={<ProtectedRoute><ManageInvoices /></ProtectedRoute>} />
         </Routes>
       </div>
     </div>

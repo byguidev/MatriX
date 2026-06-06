@@ -15,11 +15,14 @@ datasource db {
 }
 
 model User {
-  id            Int @id   @default(autoincrement())
+  id            Int      @id @default(autoincrement())
   name          String
-  email         String    @unique
-  passwordHash  String    
-  createdAt     DateTime  @default(now())
+  email         String   @unique
+  passwordHash  String
+  createdAt     DateTime @default(now())
+
+  students      Student[]
+  courses       Course[]
 }
 
 model Student {
@@ -31,7 +34,9 @@ model Student {
   phone            String?      @map("telefone")
   enrollmentDate   DateTime     @default(now()) @map("data_matricula")
   enrollmentCount  Int          @default(0) @map("quantidadeMatriculas")
+  userId           Int
 
+  user             User         @relation(fields: [userId], references: [id])
   enrollments      Enrollment[] @relation("StudentEnrollments")
   faturas          Fatura[]     @relation("StudentInvoices")
 
@@ -44,7 +49,9 @@ model Course {
   code         String       @unique @map("cod")
   price        Decimal      @db.Decimal(10, 2) @map("valor")
   billingCycle String       @map("cobranca")
+  userId       Int
 
+  user         User         @relation(fields: [userId], references: [id])
   classGroups  ClassGroup[]
   enrollments  Enrollment[] @relation("CourseEnrollments")
 

@@ -27,7 +27,8 @@ export default function UserLogin() {
         const payload = data;
         setApiError('');
         try {
-            await api.post("/api/login", payload);
+            const response = await api.post("/api/login", payload);
+            localStorage.setItem("token", response.data);
             navigate("/home");
         } catch(err) {
             const message = err?.response?.data?.message || 'Não foi possível realizar o login. Tente novamente.';

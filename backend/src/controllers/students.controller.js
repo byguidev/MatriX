@@ -2,7 +2,7 @@ const studentsService = require('../services/students.service');
 
 // cria novo aluno a partir dos dados enviados no formulario
 async function createStudent(req, res) {
-  await studentsService.createStudent(req.validatedData.body);
+  await studentsService.createStudent(req.validatedData.body, req.user.id);
   res.sendStatus(201);
 }
 
@@ -14,7 +14,7 @@ async function updateStudent(req, res) {
 
 // lista alunos e normaliza nome em caixa alta para manter padrao da tela
 async function listStudents(req, res) {
-  const students = await studentsService.listStudents();
+  const students = await studentsService.listStudents(req.user.id);
   res.status(200).json(students);
 }
 

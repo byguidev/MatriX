@@ -2,13 +2,13 @@ const coursesService = require('../services/courses.service');
 
 // retorna a lista de cursos para montagem da tabela principal
 async function listCourses(req, res) {
-    const courses = await coursesService.listCourses();
+    const courses = await coursesService.listCourses(req.user.id);
     res.status(200).json(courses);
 }
 
 // cria curso com os dados recebidos do modal de cadastro
 async function createCourse(req, res) {
-    await coursesService.createCourse(req.body);
+    await coursesService.createCourse(req.body, req.user.id);
     res.sendStatus(201);
 }
 

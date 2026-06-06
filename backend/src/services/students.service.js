@@ -6,9 +6,10 @@ const { createEnrollment } = require('../services/enrollments.service');
 const invoicesService = require('../services/invoices.service');
 
 // busca alunos ordenados e entrega campos prontos para exibicao na tabela
-async function listStudents() {
+async function listStudents(userId) {
   const rows = await prisma.student.findMany({
     orderBy: { fullName: 'asc' },
+    where: { userId: Number(userId) },
     include: { enrollments: { select: { status: true } } }
   });
   
@@ -96,7 +97,7 @@ async function getStudentProfile(id) {
 }
 
 // cria aluno e, quando informado, ja vincula ao curso/turma selecionados
-async function createStudent(body) {
+async function createStudent(body, userId) {
   try {
     const student = await prisma.$transaction(async (tx) => {
       const s = await tx.student.create({
@@ -105,7 +106,8 @@ async function createStudent(body) {
           cpf: body.cpf,
           birthDate: body.birthDate,
           email: body.email,
-          phone: body.phone
+          phone: body.phone,
+          userId: Number(userId)
         }
       });
 

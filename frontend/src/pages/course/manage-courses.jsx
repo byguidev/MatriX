@@ -206,7 +206,7 @@ function ManageCourses() {
                         bodyContent={filteredCourses} 
                         headerColumnClasses={{ 1: "width-1", 6: "width-1" }} 
                         bodyColumnClasses={{ 1: 'text-center p-0', 2: "text-start", 3: "font-monospace", 6: "text-center p-0" }} 
-                        ignoredProperties={['id']} 
+                        ignoredProperties={['id', 'userId']} 
                         startColumn={{
                             value: 'Profile', 
                             profileLink: true,

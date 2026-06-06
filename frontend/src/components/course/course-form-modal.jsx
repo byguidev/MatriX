@@ -38,7 +38,10 @@ function CourseFormModal({ data, title }) {
             defaultValues: {
                 name: data ? data.name : '',
                 code: data ? data.code : '',
-                price: data ? data.price : 0,
+                price: data ? data.price
+                    .replace(/[^\d,]/g, "")
+                    .split(",")[0]
+                    : '',
                 billingCycle: data ? data.billingCycle : 'MENSAL',
     }});
 
@@ -54,7 +57,6 @@ function CourseFormModal({ data, title }) {
             } else {
                 await api.post('/api/manage-courses', payload);
             }
-
             window.location.reload();
         } catch(err) {
             const message = err.response?.data?.message || 'Erro ao conectar com o servidor';
@@ -95,19 +97,17 @@ function CourseFormModal({ data, title }) {
                                 <Controller
                                 name="price"
                                 control={control}
-                                
                                 render={({ field }) => (
                                     <IMaskInput
                                     {...field}
                                     className="form-control"
                                     mask={Number}
                                     scale={2}
-                                    thousandsSeparator="."
                                     radix=","
-                                    mapToRadix={['.']}
-                                    prefix="R$ "
-                                    unmask="typed"
-                                    onAccept={(value) => field.onChange(value)}
+                                    thousandsSeparator="."
+                                    onAccept={(value, mask) => {
+                                        field.onChange(mask.unmaskedValue);
+                                    }}
                                     />
                                 )}
                                 />
