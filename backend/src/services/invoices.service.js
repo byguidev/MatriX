@@ -34,10 +34,11 @@ function serializeInvoice(invoice) {
     };
 }
 
-async function syncOverdueInvoices(db, now) {
+async function syncOverdueInvoices(db, now, userId) {
     const invoices = await db.fatura.findMany({
         where: {
             status: { in: ["ABERTA", "VENCIDA"] },
+            userId: Number(userId),
         },
         include: {
             enrollment: {
@@ -52,7 +53,10 @@ async function syncOverdueInvoices(db, now) {
 
         if (invoice.status === "ABERTA" && isPastDueDate) {
             await db.fatura.update({
-                where: { id: invoice.id },
+                where: { 
+                    id: invoice.id,
+                    userId: Number(userId)
+                },
                 data: {
                     status: "VENCIDA",
                     value: applyOverduePenalty(invoice.value),
@@ -61,23 +65,26 @@ async function syncOverdueInvoices(db, now) {
         }
 
         if (isPastCancelDate && invoice.enrollment && invoice.enrollment.status !== "CANCELADA") {
-            await changeEnrollmentStatus(invoice.enrollment.id, "CANCELADA", { allowCanceled: true, tx: db });
+            await changeEnrollmentStatus(invoice.enrollment.id, "CANCELADA", userId, { allowCanceled: true, tx: db });
             continue;
         }
 
         if (invoice.status === "ABERTA" && isPastDueDate && invoice.enrollment && invoice.enrollment.status === "ATIVA") {
-            await changeEnrollmentStatus(invoice.enrollment.id, "TRANCADA", { allowCanceled: true, tx: db });
+            await changeEnrollmentStatus(invoice.enrollment.id, "TRANCADA", userId, { allowCanceled: true, tx: db });
         }
 
         if (invoice.status === "VENCIDA" && invoice.enrollment && invoice.enrollment.status === "ATIVA") {
-            await changeEnrollmentStatus(invoice.enrollment.id, "TRANCADA", { allowCanceled: true, tx: db });
+            await changeEnrollmentStatus(invoice.enrollment.id, "TRANCADA", userId, { allowCanceled: true, tx: db });
         }
     }
 }
 
-async function ensureRecurringInvoices(db, now) {
+async function ensureRecurringInvoices(db, now, userId) {
     const enrollments = await db.enrollment.findMany({
-        where: { status: "ATIVA" },
+        where: { 
+            status: "ATIVA",
+            userId: Number(userId)
+        },
         include: {
             course: { select: { price: true, billingCycle: true } },
             faturas: { orderBy: { issueDate: "desc" }, take: 1 },
@@ -104,6 +111,7 @@ async function ensureRecurringInvoices(db, now) {
                     dueDate: addDays(issueDate, INVOICE_DUE_DAYS),
                     currency: enrollment.course.billingCycle,
                     status: "ABERTA",
+                    userId: Number(userId)
                 },
             });
             continue;
@@ -121,6 +129,7 @@ async function ensureRecurringInvoices(db, now) {
                     dueDate: addDays(nextIssueDate, INVOICE_DUE_DAYS),
                     currency: enrollment.course.billingCycle,
                     status: "ABERTA",
+                    userId: Number(userId)
                 },
             });
             nextIssueDate = addDays(nextIssueDate, billingDays);
@@ -128,19 +137,20 @@ async function ensureRecurringInvoices(db, now) {
     }
 }
 
-async function syncInvoices(db = prisma, now = new Date()) {
-    await ensureRecurringInvoices(db, now);
-    await syncOverdueInvoices(db, now);
+async function syncInvoices(db = prisma, now = new Date(), userId) {
+    await ensureRecurringInvoices(db, now, userId);
+    await syncOverdueInvoices(db, now, userId);
 }
 
-async function listInvoices() {
+async function listInvoices(userId) {
     try {
         return await prisma.$transaction(async (tx) => {
             const now = new Date();
 
-            await syncInvoices(tx, now);
+            await syncInvoices(tx, now, userId);
 
             const invoices = await tx.fatura.findMany({
+                where: { userId: Number(userId) },
                 orderBy: { issueDate: "desc" },
                 include: {
                     student: { select: { fullName: true } },
@@ -165,11 +175,14 @@ async function listInvoices() {
     }
 }
 
-async function changeInvoiceStatus(invoiceId, status) {
+async function changeInvoiceStatus(invoiceId, status, userId) {
     try {
         return await prisma.$transaction(async (tx) => {
             const invoice = await tx.fatura.findUnique({
-                where: { id: Number(invoiceId) },
+                where: { 
+                    id: Number(invoiceId),
+                    userId: Number(userId) 
+                },
                 include: {
                     student: { select: { fullName: true } },
                     enrollment: {
@@ -196,20 +209,26 @@ async function changeInvoiceStatus(invoiceId, status) {
             }
 
             await tx.fatura.update({
-                where: { id: Number(invoiceId) },
+                where: { 
+                    id: Number(invoiceId),
+                    userId: Number(userId)
+                },
                 data,
             });
 
             if (status === "PAGA") {
-                await changeEnrollmentStatus(invoice.enrollmentId, "ATIVA", { allowCanceled: true, tx });
+                await changeEnrollmentStatus(invoice.enrollmentId, "ATIVA", userId, { allowCanceled: true, tx });
             } else if (status === "VENCIDA" && invoice.enrollment?.status === "ATIVA") {
-                await changeEnrollmentStatus(invoice.enrollmentId, "TRANCADA", { allowCanceled: true, tx });
+                await changeEnrollmentStatus(invoice.enrollmentId, "TRANCADA", userId, { allowCanceled: true, tx });
             } else if (status === "ABERTA" && invoice.enrollment?.status !== "ATIVA") {
-                await changeEnrollmentStatus(invoice.enrollmentId, "ATIVA", { allowCanceled: true, tx });
+                await changeEnrollmentStatus(invoice.enrollmentId, "ATIVA", userId, { allowCanceled: true, tx });
             }
 
             const updatedInvoice = await tx.fatura.findUnique({
-                where: { id: Number(invoiceId) },
+                where: { 
+                    id: Number(invoiceId),
+                    userId: Number(userId)
+                },
                 include: {
                     student: { select: { fullName: true } },
                     enrollment: {

@@ -3,9 +3,10 @@ const AppError = require('../errors/AppError');
 const handleDbError = require('../errors/handleDbError');
 
 // lista turmas com nome do curso para simplificar o consumo no frontend
-async function listClasses() {
+async function listClasses(userId) {
     try {
         const classes = await prisma.classGroup.findMany({
+            where: { userId: Number(userId) },
             orderBy: { name: 'asc' },
             include: {
                 course: {
@@ -27,10 +28,13 @@ async function listClasses() {
 }
 
 // busca uma turma e adapta o retorno com nome do curso associado
-async function getClassProfile(id) {
+async function getClassProfile(id, userId) {
     try {
         const _class_ = await prisma.classGroup.findUnique({
-            where: { id: Number(id) },
+            where: { 
+                id: Number(id),
+                userId: Number(userId)
+            },
             include: {
                 course: {
                     select: {
@@ -101,7 +105,7 @@ async function createClassName(courseId) {
 }
 
 // cria turma com contadores iniciais de ocupacao e status informado
-async function createClass(body) {
+async function createClass(body, userId) {
     try {
         const newClassData = await createClassName(body.courseId);
 
@@ -115,6 +119,7 @@ async function createClass(body) {
                 maxSeats: body.maxSeats,
                 availableSeats: body.maxSeats,
                 status: body.status.toUpperCase(),
+                userId: Number(userId)
             }
         });
     } catch (err) {
@@ -124,10 +129,13 @@ async function createClass(body) {
 }
 
 // aplica update parcial e recalcula vagas disponiveis conforme alunos matriculados
-async function updateClass(body, id) {
+async function updateClass(body, id, userId) {
     try {
         const previous = await prisma.classGroup.findUnique({
-            where: { id: Number(id) },
+            where: { 
+                id: Number(id),
+                userId: Number(userId) 
+            },
             select: { courseId: true },
         });
 
@@ -156,7 +164,7 @@ async function updateClass(body, id) {
         }
 
         return prisma.$transaction(async (tx) => {
-            const classGroup = await tx.classGroup.findUnique({where:{id: Number(id)}});
+            const classGroup = await tx.classGroup.findUnique({ where: { id: Number(id) } });
             if (!classGroup) throw new AppError('Class group not found', 404);
 
             const effectiveMaxSeats = (data.maxSeats ?? classGroup.maxSeats) - classGroup.studentCount;
@@ -178,7 +186,7 @@ async function updateClass(body, id) {
 
                 const newClassData = await createClassName(body.courseId);
                 await tx.classGroup.update({
-                    where: {id: Number(id)},
+                    where: { id: Number(id) },
                     data: {
                         name: newClassData.name,
                         number: newClassData.number,
@@ -194,13 +202,16 @@ async function updateClass(body, id) {
 }
 
 // remove turma dentro de transacao para manter consistencia de matriculas e alunos
-async function deleteClass(id) {
+async function deleteClass(id, userId) {
     try {
         const classId = Number(id);
 
         await prisma.$transaction(async (tx) => {
             const enrollments = await tx.enrollment.findMany({
-                where: { classGroupId: classId }
+                where: { 
+                    classGroupId: classId,
+                    userId: Number(userId) 
+                }
             });
 
             await tx.fatura.deleteMany({

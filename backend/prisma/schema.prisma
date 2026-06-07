@@ -21,6 +21,9 @@ model User {
   passwordHash  String
   createdAt     DateTime @default(now())
 
+  fatura        Fatura[]
+  enrollment    Enrollment[]
+  classGroup    ClassGroup[]
   students      Student[]
   courses       Course[]
 }
@@ -28,9 +31,9 @@ model User {
 model Student {
   id               Int          @id @default(autoincrement())
   fullName         String       @map("nome")
-  cpf              String       @unique
+  cpf              String       
   birthDate        DateTime     @map("data_nascimento")
-  email            String       @unique
+  email            String       
   phone            String?      @map("telefone")
   enrollmentDate   DateTime     @default(now()) @map("data_matricula")
   enrollmentCount  Int          @default(0) @map("quantidadeMatriculas")
@@ -46,7 +49,7 @@ model Student {
 model Course {
   id           Int          @id @default(autoincrement())
   name         String       @map("nome")
-  code         String       @unique @map("cod")
+  code         String       
   price        Decimal      @db.Decimal(10, 2) @map("valor")
   billingCycle String       @map("cobranca")
   userId       Int
@@ -61,15 +64,18 @@ model Course {
 model ClassGroup {
   id            Int          @id @default(autoincrement())
   courseId      Int          @map("cursoId")
-  name          String       @unique @map("nome")
+  name          String       
   year          Int          @map("ano")
   number        Int          @map("numero")
   maxSeats      Int          @map("vagasMax")
   studentCount  Int          @map("qtdAlunos")
   nextEnrollmentNumber Int   @default(0) @map("proximoNumeroMatricula")
   availableSeats Int?        @map("vagasDisponiveis")
-  status        String      
+  status        String    
 
+  userId       Int
+
+  user          User         @relation(fields: [userId], references: [id])  
   course        Course       @relation(fields: [courseId], references: [id])
   enrollments   Enrollment[] @relation("ClassGroupEnrollments")
 
@@ -81,9 +87,11 @@ model Enrollment {
   studentId    Int        @map("alunoId")
   courseId     Int        @map("cursoId")
   classGroupId Int        @map("turmaId")
-  name         String     @unique @map("nome")
+  name         String     
   status       String
+  userId       Int
 
+  user         User       @relation(fields: [userId], references: [id])
   student      Student    @relation("StudentEnrollments", fields: [studentId], references: [id])
   course       Course     @relation("CourseEnrollments", fields: [courseId], references: [id])
   classGroup   ClassGroup @relation("ClassGroupEnrollments", fields: [classGroupId], references: [id])
@@ -101,7 +109,9 @@ model Fatura {
   dueDate      DateTime   @map("dataVencimento")
   currency     String     @map("cobranca")
   status       String
+  userId       Int
 
+  user         User       @relation(fields: [userId], references: [id])
   student      Student    @relation("StudentInvoices", fields: [studentId], references: [id])
   enrollment   Enrollment @relation("EnrollmentInvoices", fields: [enrollmentId], references: [id])
 

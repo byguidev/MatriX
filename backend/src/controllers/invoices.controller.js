@@ -2,7 +2,7 @@ const invoicesService = require('../services/invoices.service');
 
 // lista todas as faturas ja com status sincronizado
 async function listInvoices(req, res) {
-    const invoices = await invoicesService.listInvoices();
+    const invoices = await invoicesService.listInvoices(req.user.id);
     res.status(200).json(invoices);
 }
 
@@ -10,7 +10,8 @@ async function listInvoices(req, res) {
 async function changeInvoiceStatus(req, res) {
     const updated = await invoicesService.changeInvoiceStatus(
         req.params.id,
-        req.validatedData.body.status
+        req.validatedData.body.status,
+        req.user.id
     );
     res.status(200).json(updated);
 }

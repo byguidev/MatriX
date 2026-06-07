@@ -211,7 +211,7 @@ function ManageClasses() {
                         bodyContent={filteredClasses} 
                         headerColumnClasses={{ 1: "width-1", 6: "width-1" }} 
                         bodyColumnClasses={{ 1: 'text-center p-0', 2: "font-monospace", 3: "text-start", 8: "text-center p-0 width-1" }} 
-                        ignoredProperties={['id', 'maxSeats', 'number', 'courseId', 'nextEnrollmentNumber']} 
+                        ignoredProperties={['id', 'maxSeats', 'number', 'courseId', 'nextEnrollmentNumber', 'userId']} 
                         columnOrder={{
                             2: "name",
                             3: "courseName",

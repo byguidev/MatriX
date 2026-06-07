@@ -40,7 +40,7 @@ async function getStudentProfile(id) {
 
 
   if (!student) throw new AppError("Student not found", 404);
-  await invoicesService.syncInvoices();
+  await invoicesService.syncInvoices(undefined, undefined, student.userId);
   enrollments.length ? student.enrollments = enrollments : student.enrollments = [];
 
   for (let i = 0; i < enrollments.length; i++) {
@@ -112,7 +112,7 @@ async function createStudent(body, userId) {
       });
 
       if (body.courseId && body.classGroupId) {
-        await createEnrollment(s.id, body.courseId, body.classGroupId, tx);
+        await createEnrollment(s.id, body.courseId, body.classGroupId, userId, tx);
       }
 
       return s;
