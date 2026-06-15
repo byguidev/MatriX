@@ -297,8 +297,8 @@ const COLLAPSE_IDS = ["collapse-students", "collapse-courses"]
                         </Link>
                     </li>
 
-                    {/* configuracoes fica no rodape para manter acesso rapido */}
-                    <li className={`${expandedNavItemClass} mt-auto border-top sidebar-border-bottom`}>
+                    {/* configuracoes fica no rodape para manter acesso rapido - em processo de criação */}
+                    {/* <li className={`${expandedNavItemClass} mt-auto border-top sidebar-border-bottom`}>
                         <Link to="/configuracoes" className={getGroupClass(["/configuracoes"])}>
                             <i className={isVisuallyExpanded
                                 ? "bi bi-gear me-2"
@@ -306,18 +306,18 @@ const COLLAPSE_IDS = ["collapse-students", "collapse-courses"]
                             }></i>
                             <span className={iconVisibility}>Configurações</span>
                         </Link>
-                    </li>
+                    </li> */}
 
-                    {/* atalho para perfil do usuario */}
-                    <li className={expandedNavItemClass}>
-                        <Link to="/perfil" className={getGroupClass(["/perfil"])}>
+                    {/* atalho para perfil do usuario - em processo de criação */}
+                    {/* <li className={expandedNavItemClass}>
+                        <Link to="/user-profile" className={getGroupClass(["/perfil"])}>
                             <i className={isVisuallyExpanded
                                 ? "bi bi-person-circle me-2"
                                 : "bi bi-person-circle"
                             }></i>
                             <span className={iconVisibility}>Perfil</span>
                         </Link>
-                    </li>
+                    </li> */}
                 </ul>
             </nav>
         </>

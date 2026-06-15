@@ -6,8 +6,6 @@ function HomePage() {
         { label: "Gerenciar cursos", to: "/manage-courses", icon: "bi-journal-text" },
         { label: "Gerenciar turmas", to: "/manage-classes", icon: "bi-collection" },
         { label: "Acompanhar faturas", to: "/manage-invoices", icon: "bi-cash-coin" },
-        // Temporário, remover depois
-        { label: "Entrar", to: "/login"}
     ];
 
     const steps = [
