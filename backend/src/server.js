@@ -27,7 +27,8 @@ app.use('/api/login', loginRouter);
 
 app.use(errorHandler);
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
-// sobe o servidor na porta configurada no ambiente
-app.listen(PORT);
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+});
